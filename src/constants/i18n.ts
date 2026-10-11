@@ -214,7 +214,7 @@ export const strings = {
   ovScope: { en: '{g} ghats · {r} readings · MPPCB reports {from}–{to}', hi: '{g} घाट · {r} माप · एमपीपीसीबी रिपोर्ट {from}–{to}' },
   ovH1: { en: 'Executive Overview & Pre-Visarjan Readiness', hi: 'कार्यपालक अवलोकन और विसर्जन-पूर्व तैयारी' },
   ovH1Alt: { en: 'कार्यपालक सारांश', hi: 'Executive overview' },
-  ovIntro: { en: 'Decision-support view of historical MPPCB post-immersion readings across {g} Bhopal ghats, compared with CPCB Class B reference values. Not live monitoring.', hi: '{g} भोपाल घाटों के ऐतिहासिक एमपीपीसीबी विसर्जनोत्तर मापों का सीपीसीबी श्रेणी-बी संदर्भ मानों से तुलनात्मक निर्णय-सहायता दृश्य। लाइव निगरानी नहीं।' },
+  ovIntro: { en: 'Decision-support view of historical MPPCB post-immersion readings across {g} Bhopal ghats, compared with CPCB Class B reference values.', hi: '{g} भोपाल घाटों के ऐतिहासिक एमपीपीसीबी विसर्जनोत्तर मापों का सीपीसीबी श्रेणी-बी संदर्भ मानों से तुलनात्मक निर्णय-सहायता दृश्य।' },
   ovBtnBrief: { en: 'Export brief', hi: 'सारांश निर्यात' },
   ovBtnRanking: { en: 'View ranking', hi: 'क्रम देखें' },
   ovScopeLabel: { en: 'Monitored scope', hi: 'निगरानी दायरा' },
