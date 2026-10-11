@@ -43,6 +43,8 @@ export interface CoverageCell {
   phase: Phase
   status: CellStatus
   valid: number
+  /** Rows printed blank / not sampled in this cell. */
+  missing: number
   total: number
 }
 
@@ -53,13 +55,14 @@ export function buildCoverage(readings: Reading[], site: string, events: Festiva
     for (const phase of PHASES) {
       const rows = readings.filter((r) => r.site === site && r.year === event.year && r.festival === event.festival && r.phase === phase)
       const valid = rows.filter((r) => r.status === 'valid').length
+      const missing = rows.filter((r) => r.status === 'missing').length
       let status: CellStatus
       if (rows.length === 0) status = 'no table'
       else if (valid > 0) status = 'sampled'
       else if (rows.some((r) => r.status === 'BDL')) status = 'BDL'
       else if (rows.some((r) => r.status === 'ND')) status = 'ND'
       else status = 'not sampled'
-      cells.push({ event, phase, status, valid, total: rows.length })
+      cells.push({ event, phase, status, valid, missing, total: rows.length })
     }
   }
   return cells

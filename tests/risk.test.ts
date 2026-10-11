@@ -5,6 +5,7 @@ import { evaluateAll } from '../src/lib/risk/evaluate'
 import { buildRanking, EMPTY_FILTERS, sortRisks } from '../src/lib/risk/rank'
 import { summarise } from '../src/lib/risk/summary'
 import { overviewStats } from '../src/lib/risk/overview'
+import { qualityStats } from '../src/lib/risk/quality'
 import { buildCoverage, listEvents } from '../src/lib/risk/events'
 import type { Reading } from '../src/types'
 import { reading } from './helpers'
@@ -164,5 +165,37 @@ describe('overview stats', () => {
   test('every ghat is listed under exactly one label', () => {
     const all = Object.values(o.sitesByLabel).flat()
     expect(all.sort()).toEqual(ranking.map((r) => r.site).sort())
+  })
+})
+
+describe('quality stats', () => {
+  const q = qualityStats(results)
+  test('status counts add up to every loaded reading', () => {
+    expect(q.valid + q.bdl + q.nd + q.missing).toBe(q.total)
+    expect([q.total, q.valid, q.bdl, q.nd, q.missing]).toEqual([1524, 1289, 174, 0, 61])
+    expect(q.bySite.reduce((n, s) => n + s.total, 0)).toBe(q.total)
+  })
+  test('missing counts by parameter and stage add up', () => {
+    expect(q.missingByParameter.reduce((n, p) => n + p.total, 0)).toBe(q.missing)
+    for (const p of q.missingByParameter) expect(p.counts.pre + p.counts.during + p.counts.after).toBe(p.total)
+  })
+  test('parameters without a Class B limit are listed; DO, BOD and pH are not', () => {
+    expect(q.noLimitParameters).toHaveLength(10)
+    expect(q.noLimitParameters).not.toContain('pH')
+    expect(q.noLimitParameters).toContain('Lead')
+  })
+  test('source reports and pages come per year, as text', () => {
+    expect(q.sources.map((s) => s.year)).toEqual([2023, 2024, 2025])
+    expect(q.sources[0].report).toMatch(/2023/)
+    expect(q.sources.every((s) => s.pages.length > 0)).toBe(true)
+  })
+  test('the medium-confidence ghat has more than one printed name', () => {
+    const rani = q.names.find((n) => n.site.startsWith('Rani Kamlapati'))!
+    expect(rani.confidence).toBe('medium')
+    expect(rani.printed.length).toBeGreaterThan(1)
+  })
+  test('coverage cells count blanks separately', () => {
+    const cells = buildCoverage(real, 'Bairagarh (Sant Hirdaram) kund', listEvents(real))
+    expect(cells.reduce((n, c) => n + c.missing, 0)).toBe(q.bySite.find((s) => s.site.startsWith('Bairagarh'))!.missing)
   })
 })

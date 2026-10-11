@@ -1,17 +1,14 @@
 import { useEffect } from 'react'
 import { AppShell } from './components/AppShell'
-import { t, type StringKey } from './constants/i18n'
+import { t } from './constants/i18n'
 import { LoginPage } from './features/login/LoginPage'
 import { OverviewPage } from './features/overview/OverviewPage'
 import { ActionsPage } from './features/actions/ActionsPage'
+import { DataQualityPage } from './features/data-quality/DataQualityPage'
 import { EvidencePage } from './features/site-detail/EvidencePage'
 import { RankingPage } from './features/ranking/RankingPage'
 import { useData } from './store/data'
-import { useUi, type View } from './store/ui'
-
-const VIEW_TITLE: Record<Exclude<View, 'overview' | 'ranking' | 'evidence' | 'actions'>, StringKey> = {
-quality: 'navQuality',
-}
+import { useUi } from './store/ui'
 
 function Content() {
   const { view, lang } = useUi()
@@ -41,12 +38,7 @@ function Content() {
   if (view === 'ranking') return <RankingPage />
   if (view === 'evidence') return <EvidencePage />
   if (view === 'actions') return <ActionsPage />
-  return (
-    <div className="mx-auto max-w-5xl">
-      <h1 className="text-[32px] font-bold leading-10">{t(VIEW_TITLE[view], lang)}</h1>
-      <p className="mt-2 text-ink-2">{t('comingNext', lang)}</p>
-    </div>
-  )
+  return <DataQualityPage />
 }
 
 export default function App() {
