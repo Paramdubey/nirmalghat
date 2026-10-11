@@ -20,3 +20,24 @@ export function groupByWaterBody(ranking: SiteRisk[]): WaterBodyGroup[] {
   }
   return [...groups.entries()].map(([waterBody, sites]) => ({ waterBody, sites }))
 }
+
+export interface HeatScale {
+  min: number
+  max: number
+}
+
+/** Score range over ghats that have enough evidence to be ranked. "Insufficient data" ghats are left out on purpose. */
+export function heatScale(ranking: SiteRisk[]): HeatScale | null {
+  const scores = ranking.filter((r) => r.label !== 'Insufficient data').map((r) => r.score)
+  return scores.length === 0 ? null : { min: Math.min(...scores), max: Math.max(...scores) }
+}
+
+/**
+ * 0 to 1 shade for a ghat's historical risk score, or null for "Insufficient data" (never shaded, so it
+ * can never look low). Every ranked ghat gets at least a faint tint: a low score is not "no concern".
+ */
+export function heatLevel(risk: SiteRisk, scale: HeatScale | null): number | null {
+  if (risk.label === 'Insufficient data' || !scale) return null
+  const span = scale.max - scale.min
+  return span === 0 ? 1 : 0.15 + 0.85 * ((risk.score - scale.min) / span)
+}

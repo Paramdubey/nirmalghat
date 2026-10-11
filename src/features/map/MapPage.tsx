@@ -1,8 +1,9 @@
 import { AlertTriangle, ArrowLeft, CircleHelp, Info, TriangleAlert, Waves } from 'lucide-react'
 import { useMemo } from 'react'
 import { LABEL_KEY, t } from '../../constants/i18n'
-import { groupByWaterBody } from '../../lib/map/groups'
+import { groupByWaterBody, heatLevel, heatScale } from '../../lib/map/groups'
 import { buildRanking } from '../../lib/risk/rank'
+import { useOfficerData } from '../../store/agents'
 import { useData } from '../../store/data'
 import { useRanking } from '../../store/ranking'
 import { useUi } from '../../store/ui'
@@ -16,6 +17,9 @@ const PIN: Record<RiskLabel, { className: string; icon: typeof Info }> = {
   'Insufficient data': { className: 'hatch text-black ring-1 ring-ink-3', icon: CircleHelp },
 }
 
+/** Red tint for a 0 to 1 heat level. The same text colour works on every shade. */
+const heatColor = (level: number) => `color-mix(in srgb, #e11900 ${Math.round(level * 38)}%, white)`
+
 /** Schematic map: ghats grouped by water body. No coordinates exist in the data, so nothing here is geographic. */
 export function MapPage() {
   const lang = useUi((s) => s.lang)
@@ -24,6 +28,8 @@ export function MapPage() {
   const results = useData((s) => s.results)
   const ranking = useMemo(() => buildRanking(results), [results])
   const groups = useMemo(() => groupByWaterBody(ranking), [ranking])
+  const scale = useMemo(() => heatScale(ranking), [ranking])
+  const assignments = useOfficerData((s) => s.assignments)
   const rankOf = (site: string) => ranking.findIndex((r) => r.site === site) + 1
 
   function open(site: string) {
@@ -51,6 +57,20 @@ export function MapPage() {
         })}
       </ul>
 
+      {scale && (
+        <div className="rounded-lg border border-divider p-3">
+          <p className="label-caps !text-black">{t('mapHeatTitle', lang)}</p>
+          <div className="mt-2 flex items-center gap-3 text-xs">
+            <span className="tabular">{t('mapHeatLow', lang, { n: scale.min })}</span>
+            <span className="h-3 flex-1 rounded-full" style={{ background: `linear-gradient(to right, ${heatColor(0.15)}, ${heatColor(1)})` }} aria-hidden />
+            <span className="tabular">{t('mapHeatHigh', lang, { n: scale.max })}</span>
+            <span className="hatch ml-2 inline-block size-4 rounded ring-1 ring-ink-3" aria-hidden />
+            <span>{t(LABEL_KEY['Insufficient data'], lang)}</span>
+          </div>
+          <p className="mt-2 text-xs text-ink-3">{t('mapHeatNote', lang)}</p>
+        </div>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2">
         {groups.map((g) => (
           <section key={g.waterBody} className="overflow-hidden rounded-2xl border border-divider bg-info-tint/40">
@@ -61,17 +81,30 @@ export function MapPage() {
             <ul className="space-y-2 p-3">
               {g.sites.map((r) => {
                 const { className, icon: Icon } = PIN[r.label]
+                const level = heatLevel(r, scale)
+                const briefs = assignments.filter((a) => a.site === r.site)
                 return (
                   <li key={r.site}>
                     <button onClick={() => open(r.site)} aria-label={t('mapOpenCard', lang, { site: r.site })}
-                      className="flex min-h-14 w-full items-center gap-3 rounded-xl border border-divider bg-white p-3 text-left hover:border-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black">
+                      style={level === null ? undefined : { backgroundColor: heatColor(level) }}
+                      className={`flex min-h-14 w-full items-center gap-3 rounded-xl border border-divider p-3 text-left hover:border-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${level === null ? 'hatch' : ''}`}>
                       <span className={`grid size-10 shrink-0 place-items-center rounded-full ${className}`}><Icon className="size-5" aria-hidden /></span>
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm font-semibold leading-5">{r.site}</span>
-                        <span className="tabular block text-xs text-ink-3">{t('mapRank', lang, { n: rankOf(r.site) })} · {t(LABEL_KEY[r.label], lang)}</span>
+                        <span className="tabular block text-xs text-ink-2">{t('mapRank', lang, { n: rankOf(r.site) })} · {t(LABEL_KEY[r.label], lang)}{level !== null && ` · ${t('mapScore', lang, { n: r.score })}`}</span>
                       </span>
                       {r.gaps.length > 0 && <TriangleAlert className="size-4 shrink-0" aria-label="Data limits" />}
                     </button>
+                    {briefs.length > 0 && (
+                      <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1 px-2 text-sm">
+                        {briefs.map((a) => (
+                          <li key={a.id} className="flex flex-wrap items-center gap-2">
+                            <b>{a.agentName}</b>
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${a.submission ? 'bg-info-tint text-info' : 'hatch'}`}>{a.submission ? t('asgSubmitted', lang) : t('asgAssigned', lang)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 )
               })}

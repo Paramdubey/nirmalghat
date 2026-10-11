@@ -415,6 +415,11 @@ export const strings = {
   mapRank: { en: 'Rank {n}', hi: 'क्रम {n}' },
   mapGhats: { en: '{n} ghat(s)', hi: '{n} घाट' },
   mapLegend: { en: 'Risk label', hi: 'जोखिम श्रेणी' },
+  mapHeatTitle: { en: 'Historical risk intensity', hi: 'ऐतिहासिक जोखिम तीव्रता' },
+  mapHeatNote: { en: 'Shade shows the historical risk score from MPPCB 2023–2025 readings only. Ghats with insufficient data are hatched, never shaded. Field reports do not affect it.', hi: 'छाया केवल एमपीपीसीबी 2023–2025 मापों के ऐतिहासिक जोखिम अंक को दर्शाती है। अपर्याप्त डेटा वाले घाट धारीदार हैं, छायांकित नहीं। फील्ड रिपोर्ट इसे प्रभावित नहीं करतीं।' },
+  mapHeatLow: { en: 'Lower score ({n})', hi: 'कम अंक ({n})' },
+  mapHeatHigh: { en: 'Higher score ({n})', hi: 'अधिक अंक ({n})' },
+  mapScore: { en: 'Score {n}', hi: 'अंक {n}' },
   dataLimits: { en: 'Data limits', hi: 'डेटा सीमाएँ' },
 } as const satisfies Record<string, { en: string; hi: string }>
 

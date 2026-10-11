@@ -68,7 +68,7 @@ No paid services. The risk analysis runs in the browser from the CSVs in `public
 ## Key features
 
 - **Overview** — four summary cards, key findings, top-3 ghats, risk-label distribution. Every number is computed from the loaded CSV, nothing is hardcoded.
-- **Ghat map** (button on the Overview) — a **schematic**, not a geographic map: the data has no verified coordinates, so ghats are grouped by water body and marked by risk label. Clicking a ghat opens the ranking page scrolled to its card.
+- **Ghat map** (button on the Overview) — a **schematic**, not a geographic map: the data has no verified coordinates, so ghats are grouped by water body, marked by risk label and shaded by historical risk score (a heat scale from MPPCB readings only; "Insufficient data" ghats are hatched, never shaded). Each ghat also lists its assigned agents with their brief status (assigned, or field report submitted · not verified). Clicking a ghat opens the ranking page scrolled to its card.
 - **Ghat risk ranking** — a fixed list for the next immersion event. Each card shows dissolved oxygen (DO), BOD, breaches, latest observation with page, completeness, the explanation, and warnings (medium site match, missing Durga 2025 table, unsampled stages). A collapsible "How the ranking works" shows every weight and a per-ghat score breakdown.
 - **Field brief (on each ranking card)** — tick that ghat's recommended actions, tick one or more field agents linked to that ghat, preview the brief (English, हिन्दी or both; copy or print), then **Assign brief**. Built from fixed templates: no AI.
 - **Field agents (officer section)** — create field agent accounts (name or squad label, 6-digit PIN, ghats covered), see the briefs assigned to each agent and the field reports they submit.

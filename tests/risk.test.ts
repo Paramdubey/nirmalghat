@@ -5,7 +5,7 @@ import { evaluateAll } from '../src/lib/risk/evaluate'
 import { buildRanking, EMPTY_FILTERS, sortRisks } from '../src/lib/risk/rank'
 import { summarise } from '../src/lib/risk/summary'
 import { overviewStats } from '../src/lib/risk/overview'
-import { groupByWaterBody } from '../src/lib/map/groups'
+import { groupByWaterBody, heatLevel, heatScale } from '../src/lib/map/groups'
 import { qualityStats } from '../src/lib/risk/quality'
 import { buildCoverage, listEvents } from '../src/lib/risk/events'
 import type { Reading } from '../src/types'
@@ -209,5 +209,24 @@ describe('map groups', () => {
     expect(groups.some((g) => g.waterBody.includes('as printed'))).toBe(false)
     const lower = groups.find((g) => g.waterBody === 'Lower Lake')!
     expect(lower.sites.map((x) => x.site)).toEqual(expect.arrayContaining(['Khatlapura ghat', 'Rani Kamlapati ghat / Kamla Park kund']))
+  })
+})
+
+describe('map heat', () => {
+  const scale = heatScale(ranking)
+  test('scale comes from ranked ghats; shade rises with the score', () => {
+    expect(scale).not.toBeNull()
+    const levels = ranking.map((r) => heatLevel(r, scale)!)
+    const top = ranking.reduce((a, b) => (b.score > a.score ? b : a))
+    const bottom = ranking.reduce((a, b) => (b.score < a.score ? b : a))
+    expect(heatLevel(top, scale)).toBe(1)
+    expect(heatLevel(bottom, scale)).toBeCloseTo(0.15)
+    expect(levels.every((l) => l >= 0.15 && l <= 1)).toBe(true)
+  })
+  test('insufficient-data ghats are never shaded', () => {
+    const insufficient = { ...ranking[0], label: 'Insufficient data' as const, score: 0 }
+    expect(heatLevel(insufficient, scale)).toBeNull()
+    expect(heatScale([insufficient])).toBeNull()
+    expect(heatScale([insufficient, ranking[0]])).toEqual({ min: ranking[0].score, max: ranking[0].score })
   })
 })
