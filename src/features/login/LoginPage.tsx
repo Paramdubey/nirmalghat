@@ -1,6 +1,8 @@
 import { ArrowRight, Eye, EyeOff, IdCard, Landmark, Microscope, ShieldCheck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { t, type StringKey } from '../../constants/i18n'
+import { api } from '../../lib/api'
+import { useSession } from '../../store/session'
 import { useUi } from '../../store/ui'
 
 type Role = 'admin' | 'field'
@@ -11,16 +13,34 @@ const ROLES: { id: Role; label: StringKey; title: StringKey; body: StringKey }[]
 ]
 
 export function LoginPage() {
-  const { lang, enter } = useUi()
+  const lang = useUi((s) => s.lang)
+  const setSession = useSession((s) => s.setSession)
   const [role, setRole] = useState<Role>('admin')
   const [showPass, setShowPass] = useState(false)
-  const [remember, setRemember] = useState(false)
+  const [passcode, setPasscode] = useState('')
+  const [name, setName] = useState('')
+  const [pin, setPin] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
   const active = ROLES.find((r) => r.id === role) ?? ROLES[0]
 
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault()
-    // Demo entry: credentials are intentionally not read, stored or sent.
-    enter(remember)
+    setBusy(true)
+    setError(null)
+    try {
+      if (role === 'admin') {
+        const r = await api<{ token: string }>('/api/login', { method: 'POST', body: { role: 'officer', passcode } })
+        setSession({ role: 'officer', token: r.token, agent: null })
+      } else {
+        const r = await api<{ token: string; agent: { id: string; name: string } }>('/api/login', { method: 'POST', body: { role: 'agent', name, pin } })
+        setSession({ role: 'agent', token: r.token, agent: r.agent })
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sign-in failed')
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -63,7 +83,7 @@ export function LoginPage() {
                   type="button"
                   role="radio"
                   aria-checked={on}
-                  onClick={() => setRole(r.id)}
+                  onClick={() => { setRole(r.id); setError(null) }}
                   className={`flex min-h-11 items-center justify-center gap-2 rounded-lg text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
                     on ? 'bg-black text-white' : 'text-ink'
                   }`}
@@ -93,57 +113,38 @@ export function LoginPage() {
             <hr className="flex-1 border-divider" />
           </div>
 
-          <label htmlFor="email" className="text-sm font-medium">
-            {t('emailLabel', lang)}
-          </label>
-          <div className="relative mt-2">
-            <input
-              id="email"
-              type="email"
-              autoComplete="off"
-              placeholder={t('emailPlaceholder', lang)}
-              className="field"
-            />
-            <IdCard className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-ink-3" aria-hidden />
-          </div>
+          {role === 'admin' ? (
+            <>
+              <label htmlFor="passcode" className="text-sm font-medium">{t('emailLabel', lang)}</label>
+              <div className="relative mt-2">
+                <input id="passcode" type={showPass ? 'text' : 'password'} autoComplete="off" value={passcode} onChange={(e) => setPasscode(e.target.value)} className="field" />
+                <PassToggle show={showPass} onToggle={() => setShowPass((v) => !v)} />
+              </div>
+              <p className="mt-2 text-xs text-ink-3">{t('loginOfficerHint', lang)}</p>
+            </>
+          ) : (
+            <>
+              <label htmlFor="agent-name" className="text-sm font-medium">{t('loginName', lang)}</label>
+              <div className="relative mt-2">
+                <input id="agent-name" autoComplete="off" value={name} onChange={(e) => setName(e.target.value)} className="field" />
+                <IdCard className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-ink-3" aria-hidden />
+              </div>
+              <label htmlFor="agent-pin" className="mt-5 block text-sm font-medium">{t('passLabel', lang)}</label>
+              <div className="relative mt-2">
+                <input id="agent-pin" type={showPass ? 'text' : 'password'} inputMode="numeric" maxLength={4} autoComplete="off" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} className="field" />
+                <PassToggle show={showPass} onToggle={() => setShowPass((v) => !v)} />
+              </div>
+            </>
+          )}
 
-          <label htmlFor="pass" className="mt-5 block text-sm font-medium">
-            {t('passLabel', lang)}
-          </label>
-          <div className="relative mt-2">
-            <input
-              id="pass"
-              type={showPass ? 'text' : 'password'}
-              autoComplete="off"
-              placeholder="••••••••••••"
-              className="field"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPass((s) => !s)}
-              aria-label={t(showPass ? 'hidePass' : 'showPass', lang)}
-              className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center text-ink-2 focus-visible:outline-2 focus-visible:outline-black"
-            >
-              {showPass ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
-            </button>
-          </div>
-
-          <label className="mt-5 flex min-h-11 items-center gap-3 text-sm">
-            <input
-              type="checkbox"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-              className="size-5 rounded border-divider accent-black"
-            />
-            {t('remember', lang)}
-          </label>
+          {error && <p role="alert" className="mt-4 rounded-lg bg-high-tint px-3 py-2 text-sm font-medium text-high">{error}</p>}
 
           <button
             type="submit"
-            className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-black text-base font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+            disabled={busy}
+            className="mt-6 flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-black text-base font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:bg-ink-3"
           >
-            {t('enter', lang)}
-            <ArrowRight className="size-5" aria-hidden />
+            {busy ? t('loginBusy', lang) : <>{t('enter', lang)}<ArrowRight className="size-5" aria-hidden /></>}
           </button>
           <p className="mt-6 text-center text-sm text-ink-3">{t('enterHi', lang)}</p>
         </form>
@@ -166,6 +167,16 @@ export function LoginPage() {
         <span>{t('footerLicense', lang)}</span>
       </footer>
     </div>
+  )
+}
+
+function PassToggle({ show, onToggle }: { show: boolean; onToggle: () => void }) {
+  const lang = useUi((s) => s.lang)
+  return (
+    <button type="button" onClick={onToggle} aria-label={t(show ? 'hidePass' : 'showPass', lang)}
+      className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center text-ink-2 focus-visible:outline-2 focus-visible:outline-black">
+      {show ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+    </button>
   )
 }
 

@@ -15,12 +15,12 @@ MPPCB tests water at Bhopal's idol-immersion ghats three times per festival (bef
 **One user. One workflow. One outcome:**
 Historical data → risk ranking → evidence review → proposed actions → bilingual per-ghat field brief.
 
-It is **decision support**, not live monitoring, and not an official regulatory determination. No connection to any government system. No paid services. No API keys.
+It is **decision support**, not live monitoring, and not an official regulatory determination. No connection to any government system. No paid services. No API keys. A small self-hosted Node + SQLite server (in this repo, no external services) provides sign-in, field agent accounts, brief assignment and field reports.
 
 ### MVP scope (do not build ahead without being asked)
 
 - Dashboard (Overview), Ghat risk ranking with filters/sorting, Site detail (charts + evidence table), Proposed actions, Bilingual officer brief (print/PDF/copy), Data quality panel.
-- Runs fully client-side from the supplied CSVs. No backend, no database, no auth.
+- The risk analysis runs client-side from the supplied CSVs. A local Node + SQLite server (server/) adds officer passcode sign-in, field agent accounts (name + 4-digit PIN, hashed), brief assignments and field reports. No hosted or paid services, no keys.
 - Bhopal dataset only (7 ghats). The statewide CSV is out of scope and must never be mixed into Bhopal rankings.
 - No map (no verified coordinates exist). No multi-user roles, task assignment, or approvals. No LLM-generated rankings or numbers.
 - Optional only after the core is done: a clearly labelled "Future: task tracking — mock, not active" teaser.
@@ -315,14 +315,20 @@ Be concise. Explain changes and how to test them in plain terms. Be upfront abou
 
 ## Important Constraints (do not build ahead without being asked)
 
-- No backend, database, auth, or paid APIs
+- No hosted backend, paid APIs or external services. The self-hosted Node + SQLite server in server/ is the only backend
 - No map or invented coordinates
 - No LLM-generated rankings, scores, or numbers
-- No multi-user roles, real task assignment, notifications, or approval workflows. The field-agent roster and brief addressee are local drafts only, never shown as assigned or completed
+- Two roles only: BMC officer and field agent. No notifications or approval workflows. A field report is shown as "submitted · not verified", never as an action completed or verified
 - No statewide data mixed into Bhopal rankings
 - No health-effect claims; no "safe" labels; no completed-action claims
 
 ---
+
+## Field agents and field reports (added scope)
+
+- Officers create field agent accounts (name or squad label + 4-digit PIN + ghats covered), assign a ghat's brief (ticked recommended actions) to one or more linked agents, and see their field reports. Field agents sign in, see only their own briefs (English/Hindi), and fill a simple form after the visit.
+- **Field-recorded readings are new, unverified data.** Store them apart from the MPPCB CSVs. Never feed them into the risk score, ranking, summary counts or briefs' historical figures. Label them "Field-recorded, unverified, not MPPCB data" wherever shown. A BDL / ND / not measured answer never becomes a number.
+- Keep the sign-in honest: it is a prototype (hashed PINs, session tokens, lockout), not a substitute for a real identity system. No personal contact details, no secrets in the repo (the officer passcode comes from OFFICER_PASSCODE, with a documented demo default).
 
 ## Final Reminder
 

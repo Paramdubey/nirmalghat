@@ -1,55 +1,45 @@
 import { create } from 'zustand'
+import { api } from '../lib/api'
+import type { AgentAccount, Assignment, BriefSnapshot } from '../lib/apiTypes'
 
-const KEY = 'nirmalghat.fieldAgents'
-
-/** A field agent the officer typed in: a name or squad label plus the ghats they cover. Local to this browser. */
-export interface FieldAgent {
-  id: string
-  name: string
-  ghats: string[]
+interface OfficerState {
+  agents: AgentAccount[]
+  assignments: Assignment[]
+  loaded: boolean
+  error: string | null
+  load: () => Promise<void>
+  createAgent: (name: string, pin: string, ghats: string[]) => Promise<void>
+  removeAgent: (id: string) => Promise<void>
+  assign: (site: string, agentIds: string[], brief: BriefSnapshot) => Promise<number>
 }
 
-function read(): FieldAgent[] {
-  try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(KEY) ?? '[]')
-    if (!Array.isArray(parsed)) return []
-    return parsed.filter((a): a is FieldAgent =>
-      typeof a === 'object' && a !== null && typeof (a as FieldAgent).id === 'string' &&
-      typeof (a as FieldAgent).name === 'string' && Array.isArray((a as FieldAgent).ghats))
-  } catch {
-    return []
-  }
-}
-
-function save(agents: FieldAgent[]) {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(agents))
-  } catch {
-    // Storage blocked: the roster still works for this session.
-  }
-}
-
-interface AgentsState {
-  agents: FieldAgent[]
-  add: (name: string, ghats: string[]) => void
-  remove: (id: string) => void
-}
-
-export const useAgents = create<AgentsState>((set) => ({
-  agents: read(),
-  add: (name, ghats) =>
-    set((s) => {
-      const agents = [...s.agents, { id: crypto.randomUUID(), name: name.trim(), ghats }]
-      save(agents)
-      return { agents }
-    }),
-  remove: (id) =>
-    set((s) => {
-      const agents = s.agents.filter((a) => a.id !== id)
-      save(agents)
-      return { agents }
-    }),
+/** Officer-side view of field agents and the briefs assigned to them. Lives on the server. */
+export const useOfficerData = create<OfficerState>((set, get) => ({
+  agents: [],
+  assignments: [],
+  loaded: false,
+  error: null,
+  load: async () => {
+    try {
+      const [agents, assignments] = await Promise.all([api<AgentAccount[]>('/api/agents'), api<Assignment[]>('/api/assignments')])
+      set({ agents, assignments, loaded: true, error: null })
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : 'Could not load field agents' })
+    }
+  },
+  createAgent: async (name, pin, ghats) => {
+    await api('/api/agents', { method: 'POST', body: { name, pin, ghats } })
+    await get().load()
+  },
+  removeAgent: async (id) => {
+    await api(`/api/agents/${id}`, { method: 'DELETE' })
+    await get().load()
+  },
+  assign: async (site, agentIds, brief) => {
+    const { created } = await api<{ created: string[] }>('/api/assignments', { method: 'POST', body: { site, agentIds, brief } })
+    await get().load()
+    return created.length
+  },
 }))
 
-/** Agents linked to one ghat — the only ones offered in that ghat's dropdown. */
-export const agentsForGhat = (agents: FieldAgent[], ghat: string) => agents.filter((a) => a.ghats.includes(ghat))
+export const agentsForGhat = (agents: AgentAccount[], ghat: string) => agents.filter((a) => a.ghats.includes(ghat))

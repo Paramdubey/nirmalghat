@@ -9,6 +9,8 @@ import { compareObservations, listEvents } from '../../lib/risk/events'
 import { isBreach } from '../../lib/risk/evaluate'
 import { buildRanking } from '../../lib/risk/rank'
 import { buildSeries } from '../../lib/risk/series'
+import { FieldReportView } from '../../components/FieldReportView'
+import { useOfficerData } from '../../store/agents'
 import { useData } from '../../store/data'
 import { useRanking } from '../../store/ranking'
 import { useUi } from '../../store/ui'
@@ -25,6 +27,7 @@ export function EvidencePage() {
   const lang = useUi((s) => s.lang)
   const results = useData((s) => s.results)
   const { selectedSite, selectSite } = useRanking()
+  const assignments = useOfficerData((s) => s.assignments)
   const [params, setParams] = useState<string[]>([])
   const [copied, setCopied] = useState<number | null>(null)
 
@@ -40,6 +43,7 @@ export function EvidencePage() {
     [results, site.site, params, parameters],
   )
   const series = (parameter: string) => buildSeries(results, site.site, parameter, events)
+  const fieldReports = assignments.filter((a) => a.site === site.site && a.submission)
   const printedNames = [...new Set(results.filter((r) => r.reading.site === site.site).map((r) => r.reading.siteAsPrinted))]
   const latest = site.latestObservation
 
@@ -151,6 +155,20 @@ export function EvidencePage() {
             </tbody>
           </table>
         </div>
+      </section>
+      <section className="space-y-3">
+        <h2 className="text-2xl font-bold leading-8">{t('evFieldTitle', lang)}</h2>
+        <p className="flex items-start gap-2 rounded-lg bg-surface p-3 text-sm"><TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />{t('fieldUnverified', lang)}</p>
+        {fieldReports.length === 0 ? <p className="text-sm text-ink-2">{t('evFieldNone', lang)}</p> : (
+          <ul className="space-y-3">
+            {fieldReports.map((a) => (
+              <li key={a.id} className="rounded-lg border border-divider p-4">
+                <p className="text-sm text-ink-2">{t('evFieldBy', lang, { agent: a.agentName ?? '', date: a.submission!.report.sampledOn, stage: a.submission!.report.stage })}</p>
+                <FieldReportView report={a.submission!.report} />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   )

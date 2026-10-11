@@ -8,12 +8,11 @@ import { generateActions, type ProposedAction } from '../../lib/actions/generate
 import { daysUntil, DURGA_VISARJAN_2026 } from '../../lib/format'
 import { buildRanking } from '../../lib/risk/rank'
 import { useActions } from '../../store/actions'
-import { agentsForGhat, useAgents } from '../../store/agents'
+import { agentsForGhat, useOfficerData } from '../../store/agents'
 import { useData } from '../../store/data'
 import { useRanking } from '../../store/ranking'
 import { useUi } from '../../store/ui'
 import type { SiteRisk } from '../../types'
-import { FieldAgentsPanel } from './FieldAgentsPanel'
 import { FieldBriefModal } from './FieldBriefModal'
 
 export function RankingPage() {
@@ -40,8 +39,6 @@ export function RankingPage() {
           {t(days > 0 ? 'rkLead2' : 'rkLead2Passed', lang, { n: days, from: Math.min(...years), to: Math.max(...years) })}
         </p>
       </div>
-
-      <FieldAgentsPanel ghats={ranking.map((r) => r.site)} />
 
       <ol className="space-y-3">
         {ranking.map((r, i) => (
@@ -155,15 +152,34 @@ function Stat({ term, children }: { term: string; children: React.ReactNode }) {
   )
 }
 
-/** Per-ghat field brief: tick recommended actions, optionally pick a linked field agent, then preview/copy/print. */
+/** Per-ghat field brief: tick recommended actions and field agents, preview, then assign. */
 function FieldBriefPanel({ risk, actions }: { risk: SiteRisk; actions: ProposedAction[] }) {
   const lang = useUi((s) => s.lang)
+  const setView = useUi((s) => s.setView)
   const { included, toggle } = useActions()
-  const agents = agentsForGhat(useAgents((s) => s.agents), risk.site)
-  const [agentId, setAgentId] = useState('')
+  const { agents, assignments, assign } = useOfficerData()
+  const linked = agentsForGhat(agents, risk.site)
+  const [picked, setPicked] = useState<string[]>([])
   const [open, setOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const selected = actions.filter((a) => included.includes(a.id))
-  const agent = agents.find((a) => a.id === agentId)?.name ?? null
+  const chosen = linked.filter((a) => picked.includes(a.id))
+  const previous = assignments.filter((a) => a.site === risk.site)
+
+  async function doAssign() {
+    if (selected.length === 0 || chosen.length === 0) return setMessage({ ok: false, text: t('fbPickBoth', lang) })
+    setBusy(true)
+    try {
+      const n = await assign(risk.site, chosen.map((a) => a.id), { risk, actions: selected })
+      setMessage({ ok: true, text: t('fbAssignedOk', lang, { n }) })
+      setPicked([])
+    } catch (e) {
+      setMessage({ ok: false, text: e instanceof Error ? e.message : 'Could not assign' })
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <div className="mt-4 rounded-lg bg-surface p-4">
@@ -183,23 +199,55 @@ function FieldBriefPanel({ risk, actions }: { risk: SiteRisk; actions: ProposedA
           </ul>
         </fieldset>
       )}
-      <div className="mt-2 flex flex-wrap items-end gap-3">
-        <label className="block text-sm font-medium">
-          {t('fbAgent', lang)}
-          <select value={agentId} onChange={(e) => setAgentId(e.target.value)} disabled={agents.length === 0}
-            className="mt-1 block min-h-11 w-64 max-w-full rounded-lg border border-divider bg-white px-3 text-sm disabled:text-ink-3">
-            <option value="">{t('fbAgentNone', lang)}</option>
-            {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
-        </label>
+
+      <fieldset className="mt-3">
+        <legend className="label-caps !text-[11px]">{t('fbAgents', lang)}</legend>
+        {linked.length === 0 ? (
+          <p className="mt-1 text-sm text-ink-2">
+            {t('fbNoAgents', lang)}{' '}
+            <button onClick={() => setView('agents')} className="font-semibold underline">{t('fbManage', lang)}</button>
+          </p>
+        ) : (
+          <ul className="mt-1">
+            {linked.map((a) => (
+              <li key={a.id}>
+                <label className="flex min-h-11 cursor-pointer items-center gap-3 py-2 text-sm">
+                  <input type="checkbox" checked={picked.includes(a.id)} onChange={() => setPicked((p) => (p.includes(a.id) ? p.filter((x) => x !== a.id) : [...p, a.id]))} className="size-5 shrink-0 accent-black" />
+                  {a.name}
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
+      </fieldset>
+
+      <div className="mt-3 flex flex-wrap items-center gap-3">
         <button onClick={() => setOpen(true)} disabled={selected.length === 0}
-          className="min-h-11 rounded-full bg-black px-6 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:bg-divider disabled:text-ink-3">
-          {t('fbCreate', lang)}
+          className="min-h-11 rounded-full bg-white px-6 text-sm font-semibold ring-1 ring-divider focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:text-ink-3">
+          {t('fbPreview', lang)}
         </button>
-        <span className="tabular pb-3 text-sm text-ink-2">{t('fbSelected', lang, { a: selected.length, b: actions.length })}</span>
+        <button onClick={doAssign} disabled={busy || selected.length === 0 || chosen.length === 0}
+          className="min-h-11 rounded-full bg-black px-6 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:bg-divider disabled:text-ink-3">
+          {t('fbAssign', lang)}
+        </button>
+        <span className="tabular text-sm text-ink-2">{t('fbSelected', lang, { a: selected.length, b: actions.length })}</span>
       </div>
-      {agents.length === 0 && <p className="mt-2 text-xs text-ink-3">{t('fbNoAgents', lang)}</p>}
-      {open && <FieldBriefModal risk={risk} actions={selected} agent={agent} onClose={() => setOpen(false)} />}
+      {message && <p role="status" className={`mt-2 text-sm font-medium ${message.ok ? '' : 'text-high'}`}>{message.text}</p>}
+
+      {previous.length > 0 && (
+        <div className="mt-3 border-t border-divider pt-3">
+          <p className="label-caps !text-[11px]">{t('fbAssignedFor', lang)}</p>
+          <ul className="mt-1 space-y-1 text-sm">
+            {previous.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center gap-2">
+                <b>{a.agentName}</b>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${a.submission ? 'bg-info-tint text-info' : 'hatch'}`}>{a.submission ? t('asgSubmitted', lang) : t('asgAssigned', lang)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {open && <FieldBriefModal risk={risk} actions={selected} agent={chosen.map((a) => a.name).join(', ') || null} onClose={() => setOpen(false)} />}
     </div>
   )
 }

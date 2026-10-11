@@ -52,7 +52,7 @@ describe('field brief', () => {
     expect(limits).not.toContain('Malikhedi')
   })
   test('says it is a draft and that historical is not current; no health or safety wording', () => {
-    expect(en.draftLine).toMatch(/Nothing has been sent or recorded as an assignment/)
+    expect(en.draftLine).toMatch(/Prepared from historical data/)
     expect(en.closing).toMatch(/do not establish current water conditions/)
     for (const text of [briefToText(en), briefToText(hi)]) {
       expect(text).not.toMatch(/\{\w+\}/)
@@ -71,8 +71,8 @@ describe('field brief', () => {
 describe('field agent roster', () => {
   test('only agents linked to a ghat are offered for it', () => {
     const agents = [
-      { id: '1', name: 'Squad A', ghats: ['Khatlapura ghat', 'Prempura ghat'] },
-      { id: '2', name: 'Squad B', ghats: ['Malikhedi kund'] },
+      { id: '1', name: 'Squad A', ghats: ['Khatlapura ghat', 'Prempura ghat'], createdAt: '' },
+      { id: '2', name: 'Squad B', ghats: ['Malikhedi kund'], createdAt: '' },
     ]
     expect(agentsForGhat(agents, 'Khatlapura ghat').map((a) => a.name)).toEqual(['Squad A'])
     expect(agentsForGhat(agents, 'Malikhedi kund').map((a) => a.name)).toEqual(['Squad B'])

@@ -1,13 +1,17 @@
 import { useEffect } from 'react'
 import { AppShell } from './components/AppShell'
 import { t } from './constants/i18n'
+import { ActionsPage } from './features/actions/ActionsPage'
+import { AgentApp } from './features/agent/AgentApp'
+import { AgentsPage } from './features/agents/AgentsPage'
+import { DataQualityPage } from './features/data-quality/DataQualityPage'
 import { LoginPage } from './features/login/LoginPage'
 import { OverviewPage } from './features/overview/OverviewPage'
-import { ActionsPage } from './features/actions/ActionsPage'
-import { DataQualityPage } from './features/data-quality/DataQualityPage'
-import { EvidencePage } from './features/site-detail/EvidencePage'
 import { RankingPage } from './features/ranking/RankingPage'
+import { EvidencePage } from './features/site-detail/EvidencePage'
+import { useOfficerData } from './store/agents'
 import { useData } from './store/data'
+import { useSession } from './store/session'
 import { useUi } from './store/ui'
 
 function Content() {
@@ -38,17 +42,24 @@ function Content() {
   if (view === 'ranking') return <RankingPage />
   if (view === 'evidence') return <EvidencePage />
   if (view === 'actions') return <ActionsPage />
+  if (view === 'agents') return <AgentsPage />
   return <DataQualityPage />
 }
 
 export default function App() {
-  const entered = useUi((s) => s.entered)
-  const load = useData((s) => s.load)
-  useEffect(() => {
-    if (entered) void load()
-  }, [entered, load])
+  const role = useSession((s) => s.session?.role)
+  const loadData = useData((s) => s.load)
+  const loadOfficer = useOfficerData((s) => s.load)
 
-  if (!entered) return <LoginPage />
+  useEffect(() => {
+    if (role === 'officer') {
+      void loadData()
+      void loadOfficer()
+    }
+  }, [role, loadData, loadOfficer])
+
+  if (role === 'agent') return <AgentApp />
+  if (role !== 'officer') return <LoginPage />
   return (
     <AppShell>
       <Content />
