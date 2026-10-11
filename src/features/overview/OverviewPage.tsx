@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, ListOrdered, MapPin, TriangleAlert } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Calculator, ListOrdered, MapPin, TriangleAlert } from 'lucide-react'
 import { useMemo } from 'react'
 import { StatCard } from '../../components/StatCard'
 import { actionText } from '../../constants/actionText'
@@ -53,6 +53,9 @@ export function OverviewPage() {
           <p className="mt-4 text-base leading-6 text-ink-2">{t('ovIntro', lang, { g: s.ghatsAnalysed })}</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button onClick={() => { selectSite(ranking[0]?.site ?? null); setView('score') }} className="flex min-h-11 items-center gap-2 rounded-full border border-divider bg-white px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-black">
+            <Calculator className="size-4" aria-hidden />{t('ovScoreCta', lang)}
+          </button>
           <button onClick={() => setView('map')} className="flex min-h-11 items-center gap-2 rounded-full border border-divider bg-white px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-black">
             <MapPin className="size-4" aria-hidden />{t('mapCta', lang)}
           </button>

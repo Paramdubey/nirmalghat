@@ -455,6 +455,7 @@ export const strings = {
   scNotCountedBody: { en: '{missing} not sampled · {bdl} BDL · {nd} ND · {noLimit} readings of parameters with no Class B limit. None of these changes the score.', hi: '{missing} अनमापे · {bdl} बीडीएल · {nd} एनडी · {noLimit} बिना श्रेणी-बी सीमा वाले पैरामीटर के माप। इनमें से कोई अंक नहीं बदलता।' },
   scGapsNote: { en: 'Data gaps are flagged separately and never lower the score. They can only mark a ghat "Insufficient data".', hi: 'डेटा अंतराल अलग चिह्नित होते हैं और अंक कभी कम नहीं करते। वे केवल घाट को "अपर्याप्त डेटा" चिह्नित कर सकते हैं।' },
   scRecencyNote: { en: 'Recency: {newest} readings count 1.0 and each earlier year counts 0.1 less. This is how recently it was observed, not current water quality.', hi: 'हालिया-पन: {newest} के माप 1.0 गिने जाते हैं और हर पिछला वर्ष 0.1 कम। यह दर्शाता है कि कितने हाल में देखा गया, वर्तमान जल गुणवत्ता नहीं।' },
+  ovScoreCta: { en: 'How scores work', hi: 'अंक कैसे बनते हैं' },
   dataLimits: { en: 'Data limits', hi: 'डेटा सीमाएँ' },
 } as const satisfies Record<string, { en: string; hi: string }>
 
