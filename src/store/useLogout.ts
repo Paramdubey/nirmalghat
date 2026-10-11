@@ -1,10 +1,8 @@
-import { api } from '../lib/api'
-import { useSession } from './session'
+import { supabase } from '../lib/supabase'
 
-/** Ends the server session, then forgets it locally. */
+/** Ends the Supabase session; the auth listener then returns the app to the sign-in page. */
 export function useLogout() {
-  const setSession = useSession((s) => s.setSession)
   return () => {
-    void api('/api/logout', { method: 'POST' }).catch(() => undefined).finally(() => setSession(null))
+    void supabase.auth.signOut()
   }
 }

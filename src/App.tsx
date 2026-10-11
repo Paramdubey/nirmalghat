@@ -11,7 +11,8 @@ import { RankingPage } from './features/ranking/RankingPage'
 import { EvidencePage } from './features/site-detail/EvidencePage'
 import { useOfficerData } from './store/agents'
 import { useData } from './store/data'
-import { useSession } from './store/session'
+import { initAuth, useSession } from './store/session'
+import { supabaseConfigured } from './lib/supabase'
 import { useUi } from './store/ui'
 
 function Content() {
@@ -46,11 +47,22 @@ function Content() {
   return <DataQualityPage />
 }
 
+function NotConfigured() {
+  const lang = useUi((s) => s.lang)
+  return (
+    <div className="mx-auto mt-16 max-w-xl rounded-lg border border-moderate bg-moderate-tint p-6">
+      <h1 className="text-xl font-bold">{t('cfgTitle', lang)}</h1>
+      <p className="mt-2 text-sm leading-6">{t('cfgBody', lang)}</p>
+    </div>
+  )
+}
+
 export default function App() {
-  const role = useSession((s) => s.session?.role)
+  const { status, role } = useSession()
   const loadData = useData((s) => s.load)
   const loadOfficer = useOfficerData((s) => s.load)
 
+  useEffect(() => { initAuth() }, [])
   useEffect(() => {
     if (role === 'officer') {
       void loadData()
@@ -58,6 +70,8 @@ export default function App() {
     }
   }, [role, loadData, loadOfficer])
 
+  if (!supabaseConfigured) return <NotConfigured />
+  if (status === 'loading') return <div className="min-h-screen bg-surface" aria-busy="true" />
   if (role === 'agent') return <AgentApp />
   if (role !== 'officer') return <LoginPage />
   return (

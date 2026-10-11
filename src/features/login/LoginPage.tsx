@@ -1,8 +1,7 @@
 import { ArrowRight, Eye, EyeOff, IdCard, Landmark, Microscope, ShieldCheck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { t, type StringKey } from '../../constants/i18n'
-import { api } from '../../lib/api'
-import { useSession } from '../../store/session'
+import { agentEmail, PIN_PATTERN, supabase } from '../../lib/supabase'
 import { useUi } from '../../store/ui'
 
 type Role = 'admin' | 'field'
@@ -14,10 +13,10 @@ const ROLES: { id: Role; label: StringKey; title: StringKey; body: StringKey }[]
 
 export function LoginPage() {
   const lang = useUi((s) => s.lang)
-  const setSession = useSession((s) => s.setSession)
   const [role, setRole] = useState<Role>('admin')
   const [showPass, setShowPass] = useState(false)
-  const [passcode, setPasscode] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [pin, setPin] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -29,13 +28,13 @@ export function LoginPage() {
     setBusy(true)
     setError(null)
     try {
-      if (role === 'admin') {
-        const r = await api<{ token: string }>('/api/login', { method: 'POST', body: { role: 'officer', passcode } })
-        setSession({ role: 'officer', token: r.token, agent: null })
-      } else {
-        const r = await api<{ token: string; agent: { id: string; name: string } }>('/api/login', { method: 'POST', body: { role: 'agent', name, pin } })
-        setSession({ role: 'agent', token: r.token, agent: r.agent })
-      }
+      if (role !== 'admin' && !PIN_PATTERN.test(pin)) throw new Error('PIN must be 6 digits')
+      const credentials = role === 'admin'
+        ? { email: email.trim(), password }
+        : { email: await agentEmail(name), password: pin }
+      const { error: authError } = await supabase.auth.signInWithPassword(credentials)
+      if (authError) throw new Error(role === 'admin' ? 'Wrong email or password' : 'Wrong name or PIN')
+      // The auth listener in store/session.ts takes it from here.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sign-in failed')
     } finally {
@@ -115,9 +114,14 @@ export function LoginPage() {
 
           {role === 'admin' ? (
             <>
-              <label htmlFor="passcode" className="text-sm font-medium">{t('emailLabel', lang)}</label>
+              <label htmlFor="officer-email" className="text-sm font-medium">{t('emailLabel', lang)}</label>
               <div className="relative mt-2">
-                <input id="passcode" type={showPass ? 'text' : 'password'} autoComplete="off" value={passcode} onChange={(e) => setPasscode(e.target.value)} className="field" />
+                <input id="officer-email" type="email" autoComplete="username" placeholder={t('emailPlaceholder', lang)} value={email} onChange={(e) => setEmail(e.target.value)} className="field" />
+                <IdCard className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-ink-3" aria-hidden />
+              </div>
+              <label htmlFor="officer-password" className="mt-5 block text-sm font-medium">{t('loginPassword', lang)}</label>
+              <div className="relative mt-2">
+                <input id="officer-password" type={showPass ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="field" />
                 <PassToggle show={showPass} onToggle={() => setShowPass((v) => !v)} />
               </div>
               <p className="mt-2 text-xs text-ink-3">{t('loginOfficerHint', lang)}</p>
@@ -131,7 +135,7 @@ export function LoginPage() {
               </div>
               <label htmlFor="agent-pin" className="mt-5 block text-sm font-medium">{t('passLabel', lang)}</label>
               <div className="relative mt-2">
-                <input id="agent-pin" type={showPass ? 'text' : 'password'} inputMode="numeric" maxLength={4} autoComplete="off" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} className="field" />
+                <input id="agent-pin" type={showPass ? 'text' : 'password'} inputMode="numeric" maxLength={6} autoComplete="off" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} className="field" />
                 <PassToggle show={showPass} onToggle={() => setShowPass((v) => !v)} />
               </div>
             </>

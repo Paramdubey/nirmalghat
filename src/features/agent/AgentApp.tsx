@@ -16,7 +16,7 @@ import { FieldForm } from './FieldForm'
 /** The field agent's side: their own briefs, and the form to record readings after the visit. */
 export function AgentApp() {
   const lang = useUi((s) => s.lang)
-  const agent = useSession((s) => s.session?.agent)
+  const agent = useSession((s) => s.agent)
   const logout = useLogout()
   const { tasks, loaded, error, load } = useTasks()
   const [openId, setOpenId] = useState<string | null>(null)
@@ -77,7 +77,7 @@ export function AgentApp() {
 
 function TaskDetail({ task, onBack }: { task: Assignment; onBack: () => void }) {
   const lang = useUi((s) => s.lang)
-  const agent = useSession((s) => s.session?.agent)
+  const agent = useSession((s) => s.agent)
   const submit = useTasks((s) => s.submit)
   const [today] = useState(() => new Date())
   const brief = useMemo(() => generateFieldBrief({

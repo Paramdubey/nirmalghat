@@ -20,7 +20,7 @@ export function AgentsPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (name.trim() === '' || !/^\d{4}$/.test(pin) || picked.length === 0) return setMessage(t('agNeed', lang))
+    if (name.trim() === '' || !/^\d{6}$/.test(pin) || picked.length === 0) return setMessage(t('agNeed', lang))
     setBusy(true)
     try {
       await createAgent(name, pin, picked)
@@ -60,7 +60,7 @@ export function AgentsPage() {
             </label>
             <label className="block text-sm font-medium">
               {t('agPin', lang)}
-              <input value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} inputMode="numeric" maxLength={4} autoComplete="off" className="field mt-1 pr-4" />
+              <input value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} inputMode="numeric" maxLength={6} autoComplete="off" className="field mt-1 pr-4" />
               <span className="mt-1 block text-xs font-normal text-ink-3">{t('agPinNote', lang)}</span>
             </label>
           </div>

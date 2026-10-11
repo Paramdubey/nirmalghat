@@ -43,23 +43,34 @@ git clone <this repo>        # 1. get the code
 cd nirmalghat                # 2. enter the folder
 npm install                  # 3. install dependencies (Node 20+)
 npm run dev                  # 4. start the app
-# 5. open http://localhost:5173 and sign in as "BMC Officer" with the demo passcode: nirmalghat-demo
+# 5. open http://localhost:5173
 ```
 
-`npm run dev` starts the app **and** its small API server (Node + SQLite, no external services) in one process. The database is created at `server/data/nirmalghat.db` (git-ignored). To run the built app instead: `npm run build && npm start` (port 8787, set `PORT` to change).
+Step 4 needs a one-time Supabase setup (below) for sign-in, field agents, assignments and field reports. Without it the app shows setup instructions instead of failing quietly. The ranking, evidence and brief data come from the CSVs and need no backend.
 
-Set `OFFICER_PASSCODE` to replace the demo passcode, and `NIRMALGHAT_DB` to move the database file. Field agents are created by the officer under **Field agents** and sign in with their name or squad label and a 4-digit PIN.
+### One-time Supabase setup (free tier, about 5 minutes)
+
+1. Create a project at <https://supabase.com>. In **Authentication → Providers → Email**, turn **off** "Confirm email" (agent accounts use a derived address that never receives mail).
+2. Open **SQL Editor** and run [supabase/migrations/0001_nirmalghat.sql](supabase/migrations/0001_nirmalghat.sql). It creates the tables and the Row Level Security policies.
+3. Create the officer: **Authentication → Users → Add user** (email + password, tick auto-confirm), then run in the SQL editor, with your email:
+   ```sql
+   update auth.users
+   set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role": "officer"}'
+   where email = 'officer@example.in';
+   ```
+4. Copy `.env.example` to `.env` and fill in the **Project URL** and the **anon public** key (Project Settings → API). `.env` is git-ignored. **Never** put the `service_role` key in this app or in git.
+5. Restart `npm run dev`, then sign in as **BMC Officer**. Create field agents under **Field agents** (name or squad label, 6-digit PIN, ghats covered); they sign in as **Field Squad** with that name and PIN.
 
 Checks: `npm run lint` · `npm run typecheck` · `npm run test` · `npm run build`
 
-No API keys or paid services. The risk analysis runs in the browser from the CSVs in `public/data/`; only sign-in, field agents, assignments and field reports use the local server.
+No paid services. The risk analysis runs in the browser from the CSVs in `public/data/`. Only sign-in, field agents, assignments and field reports use **Supabase** (free tier). The only value in `.env` is the project URL and the *public* anon key; nothing secret is stored in this repository.
 
 ## Key features
 
 - **Overview** — four summary cards, key findings, top-3 ghats, risk-label distribution. Every number is computed from the loaded CSV, nothing is hardcoded.
 - **Ghat risk ranking** — a fixed list for the next immersion event. Each card shows dissolved oxygen (DO), BOD, breaches, latest observation with page, completeness, the explanation, and warnings (medium site match, missing Durga 2025 table, unsampled stages). A collapsible "How the ranking works" shows every weight and a per-ghat score breakdown.
 - **Field brief (on each ranking card)** — tick that ghat's recommended actions, tick one or more field agents linked to that ghat, preview the brief (English, हिन्दी or both; copy or print), then **Assign brief**. Built from fixed templates: no AI.
-- **Field agents (officer section)** — create field agent accounts (name or squad label, 4-digit PIN, ghats covered), see the briefs assigned to each agent and the field reports they submit.
+- **Field agents (officer section)** — create field agent accounts (name or squad label, 6-digit PIN, ghats covered), see the briefs assigned to each agent and the field reports they submit.
 - **Field agent app** — an agent signs in on their phone, sees only their own briefs (English / हिन्दी), and fills a simple form (date, stage, pH, DO, BOD required; COD, solids, turbidity, conductivity and four metals optional; value, BDL, ND or not measured) after the visit. Field reports are stored **separately**, labelled *Field-recorded, unverified, not MPPCB data*, and are **never** used in the risk score or ranking.
 - **Water-quality evidence** — DO, BOD and pH charts over every festival stage with Class B reference lines. Lines **break** where there is no number; BDL, ND, not-sampled and no-table each have their own marker. An evidence table lists every reading with value and unit, as-printed text, criterion, result, PDF page, source report and a copy-citation button.
 - **Action recommendations** — proposals derived from the evidence, each stamped *Proposed — not assigned*, with reason, supporting readings (with pages), a suggested team and the evidence needed to verify completion.
@@ -68,7 +79,7 @@ No API keys or paid services. The risk analysis runs in the browser from the CSV
 
 ## Stack
 
-Vite · React 19 · TypeScript (strict) · Tailwind CSS v4 · Recharts · PapaParse · Zustand · Lucide icons · Node 24 built-ins for the API (`node:http`, `node:sqlite`, `node:crypto`; no extra server dependencies) · self-hosted Inter and Noto Sans Devanagari (`@fontsource`, no external requests) · Vitest + React Testing Library.
+Vite · React 19 · TypeScript (strict) · Tailwind CSS v4 · Recharts · PapaParse · Zustand · Lucide icons · Supabase (Auth + Postgres with Row Level Security) via `@supabase/supabase-js` · self-hosted Inter and Noto Sans Devanagari (`@fontsource`, no external requests) · Vitest + React Testing Library.
 
 ## Datasets
 
@@ -111,7 +122,7 @@ Reference: **CPCB Class B (outdoor bathing)** — pH 6.5–8.5 (inclusive), DO �
 
 ## What works and what doesn't
 
-**Works** (77 automated tests, lint, typecheck and build pass; the officer and field-agent flows were driven end to end in headless Chrome, and the production server was smoke-tested)
+**Works** (75 automated tests, lint, typecheck and build pass)
 
 - Loading and validating the real CSV (1,524 rows, 7 ghats, 0 loader warnings), with an error that names the file if loading fails and no silent fallback.
 - Class B comparison, the ranking, explanations, coverage and data-quality counts, all unit-tested against the real data. The guide's figures are recomputed from the data and match: 42 of 116 DO readings below 5 mg/l, 100 of 112 BOD readings above 3 mg/l.
@@ -120,9 +131,13 @@ Reference: **CPCB Class B (outdoor bathing)** — pH 6.5–8.5 (inclusive), DO �
 **Doesn't, or isn't verified**
 
 - **Not live monitoring.** Nothing here describes current water conditions. Not an official determination.
-- **Sign-in is a prototype.** The officer passcode and agents' 4-digit PINs are checked by the local server (PINs are hashed with scrypt, sessions are random tokens that expire after 12 hours, repeated wrong attempts lock out for 15 minutes). A 4-digit PIN is **not** strong security and this is **not** a replacement for a real identity system. The demo officer passcode is public in this README; set `OFFICER_PASSCODE` before sharing a server.
-- **No notifications.** An assigned brief appears when the agent opens the app (there is a Refresh button); nothing is pushed to phones. A submitted field report is shown as "submitted · not verified", never as an action completed or verified.
-- **Single local server.** Data lives in one SQLite file on whoever runs the server; there is no backup, multi-server sync or offline mode for the field app. For agents to reach it, the server must be reachable from their phones (same network or a host you provide).
+- **The Supabase part is not yet tested against a live project by the author.** The SQL, policies and client code are written and type-checked, but the sign-in, agent creation, assignment and report flow still has to be run once against a real Supabase project. Treat it as untested until you have done that.
+- **Row Level Security is the only protection.** The browser talks to Supabase directly with the public anon key, so every table keeps RLS on: officers (users with `app_metadata.role = officer`) manage agents and read everything; an agent reads only their own briefs and can insert one report for a brief assigned to them; nobody can update or delete. Review `supabase/migrations/0001_nirmalghat.sql` before sharing a project.
+- **Sign-in is a prototype.** Agents sign in with a name and a **6-digit PIN** (Supabase Auth needs at least 6 characters). That is weak security and **not** a replacement for a real identity system. Supabase's own rate limits apply. If you enable leaked-password protection, common PINs such as `123456` will be refused. Agent accounts use a derived, non-deliverable address (`agent-…@agents.example.com`), so "Confirm email" must stay off.
+- **Report values are only lightly validated server-side.** The database checks the shape of a report (13 rows, valid stage and date), the form checks value ranges, but a determined agent could post out-of-range numbers. Field reports are labelled unverified and never feed the ranking.
+- **Removing an agent** is refused if they have briefs (so history is kept); otherwise it also deletes their login.
+- **No notifications.** An assigned brief appears when the agent opens or refreshes the app; a submitted report is shown as "submitted · not verified", never as an action completed or verified.
+- **No offline mode** for the field app; agents need a connection to load briefs and submit.
 - **Field readings are not charted.** They appear as a labelled table on the evidence page and in the officer's reports, not as chart series, and they never change the ranking. Entered values are range-checked but not otherwise verified.
 - **Avoid personal data.** Use names or squad labels, not contact details.
 - **Hindi text has not had a native-speaker review.** Every Hindi string is marked `TODO: native review`. Ghat explanations in the ranking cards stay in English; Hindi appears in the UI strings and the generated briefs.
@@ -140,6 +155,7 @@ Reference: **CPCB Class B (outdoor bathing)** — pH 6.5–8.5 (inclusive), DO �
 - CPCB water quality criteria — <https://cpcb.gov.in/water-quality-criteria/>
 - Free Press Journal, NGT immersion ban and new BMC ghats (26 Feb 2026) — <https://www.freepressjournal.in/amp/bhopal/mp-news-idol-immersion-to-shift-from-lakes-to-safer-sites-ngt-ban-pushes-bmc-to-build-4-dedicated-ghats>
 - Drik Panchang, Durga visarjan date 20 October 2026 — <https://www.drikpanchang.com/navratri/durga-puja/durga-visarjan-date-time.html?year=2026>
+- Supabase (Auth + Postgres, free tier) — <https://supabase.com>
 - Supplied hackathon material: [Participant guide](resources) and [data dictionary](data/DATA_DICTIONARY.md). The Upper and Lower Lake monthly and comparative reports in `resources/` were supplied but are not used by the app.
 
 ## Project layout
@@ -149,7 +165,7 @@ src/lib/data      CSV loading, parsing, validation
 src/lib/risk      Class B comparison, scoring, ranking, chart series, quality stats (pure, tested)
 src/lib/actions   proposed actions from evidence
 src/lib/brief     field-brief generation (English / Hindi templates)
-server/           local API: sign-in, field agents, assignments, field reports (Node + SQLite)
+supabase/         SQL migration: tables, Row Level Security, officer_delete_agent()
 src/constants     CPCB values, weights and rationale, UI and brief text
 src/features      overview · ranking · site-detail · actions · agents · agent (field app) · data-quality · login
 tests             Vitest, including smoke tests on the real CSV
@@ -157,4 +173,4 @@ tests             Vitest, including smoke tests on the real CSV
 
 ## Licence
 
-[MIT](LICENSE). No API keys or secrets are used or stored in this repository (the demo officer passcode is a documented default, not a secret).
+[MIT](LICENSE). No API keys or secrets are used or stored in this repository (`.env` is git-ignored; `.env.example` has placeholders only).
