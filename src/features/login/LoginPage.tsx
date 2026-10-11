@@ -7,6 +7,10 @@ import { useUi } from '../../store/ui'
 
 type Role = 'admin' | 'field'
 
+// Public demo login for judges. This account only exists on the demo Supabase project.
+const DEMO_EMAIL = 'officer@bmc.com'
+const DEMO_PASSWORD = 'Test@123'
+
 const ROLES: { id: Role; label: StringKey; title: StringKey; body: StringKey }[] = [
   { id: 'admin', label: 'roleAdmin', title: 'roleAdminTitle', body: 'roleAdminBody' },
   { id: 'field', label: 'roleField', title: 'roleFieldTitle', body: 'roleFieldBody' },
@@ -104,9 +108,25 @@ export function LoginPage() {
             </div>
           </div>
 
-          <p className="mt-6 rounded-lg border border-dashed border-ink-3 px-3 py-2 text-sm text-ink-2">
-            {t('demoNotice', lang)}
-          </p>
+          <div className="mt-6 rounded-lg border border-dashed border-ink-3 px-4 py-3 text-sm">
+            <p className="label-caps !text-black">{t('demoTitle', lang)}</p>
+            {role === 'admin' ? (
+              <>
+                <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                  <dt className="text-ink-2">{t('demoOfficerLabel', lang)}</dt>
+                  <dd className="select-all font-mono font-semibold">{DEMO_EMAIL}</dd>
+                  <dt className="text-ink-2">{t('demoPasswordLabel', lang)}</dt>
+                  <dd className="select-all font-mono font-semibold">{DEMO_PASSWORD}</dd>
+                </dl>
+                <button type="button" onClick={() => { setEmail(DEMO_EMAIL); setPassword(DEMO_PASSWORD); setError(null) }}
+                  className="mt-3 min-h-11 rounded-full bg-surface px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-black">
+                  {t('demoFill', lang)}
+                </button>
+              </>
+            ) : (
+              <p className="mt-2 text-ink-2">{t('demoAgentNote', lang)}</p>
+            )}
+          </div>
 
           <div className="my-6 flex items-center gap-4">
             <hr className="flex-1 border-divider" />

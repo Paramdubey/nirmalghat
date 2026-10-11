@@ -14,7 +14,6 @@ export const strings = {
   roleField: { en: 'Field Squad', hi: 'फील्ड दल' },
   roleAdminTitle: { en: 'BMC officer · Policy HQ', hi: 'बीएमसी अधिकारी · नीति मुख्यालय' },
   roleFieldTitle: { en: 'Field agent · Ghat visit', hi: 'फील्ड एजेंट · घाट भ्रमण' },
-  demoNotice: { en: 'Prototype sign-in handled by Supabase Auth. A short PIN is not a substitute for a real identity system.', hi: 'प्रोटोटाइप साइन-इन, सुपाबेस ऑथ द्वारा। छोटा पिन वास्तविक पहचान प्रणाली का विकल्प नहीं है।' },
   orMunicipalId: { en: 'Sign in', hi: 'साइन इन' },
   emailLabel: { en: 'Officer email', hi: 'अधिकारी ईमेल' },
   emailPlaceholder: { en: 'officer@example.in', hi: 'officer@example.in' },
@@ -412,6 +411,11 @@ export const strings = {
   loginPassword: { en: 'Password', hi: 'पासवर्ड' },
   cfgTitle: { en: 'Supabase is not configured', hi: 'सुपाबेस कॉन्फ़िगर नहीं है' },
   cfgBody: { en: 'Create a .env file from .env.example with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, run supabase/migrations/0001_nirmalghat.sql in your Supabase SQL editor, then restart the dev server. See the README.', hi: '.env.example से .env फ़ाइल बनाएँ जिसमें VITE_SUPABASE_URL और VITE_SUPABASE_ANON_KEY हों, अपने सुपाबेस SQL एडिटर में supabase/migrations/0001_nirmalghat.sql चलाएँ, फिर डेव सर्वर पुनः चालू करें। README देखें।' },
+  demoTitle: { en: 'Demo account', hi: 'डेमो खाता' },
+  demoOfficerLabel: { en: 'Officer', hi: 'अधिकारी' },
+  demoPasswordLabel: { en: 'Password', hi: 'पासवर्ड' },
+  demoFill: { en: 'Fill in demo login', hi: 'डेमो लॉगिन भरें' },
+  demoAgentNote: { en: 'Field agent accounts are created by the officer under "Field agents". Sign in as the officer first.', hi: 'फील्ड एजेंट खाते अधिकारी "फील्ड एजेंट" में बनाते हैं। पहले अधिकारी के रूप में साइन इन करें।' },
   dataLimits: { en: 'Data limits', hi: 'डेटा सीमाएँ' },
 } as const satisfies Record<string, { en: string; hi: string }>
 
