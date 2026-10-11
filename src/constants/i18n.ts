@@ -41,11 +41,73 @@ export const strings = {
   footer: { en: 'Open-source hackathon prototype · No connection to any government system', hi: 'ओपन-सोर्स हैकाथॉन प्रोटोटाइप · किसी सरकारी प्रणाली से कोई संबंध नहीं' },
   footerLicense: { en: 'MIT licensed', hi: 'एमआईटी लाइसेंस' },
   signOut: { en: 'Leave dashboard', hi: 'डैशबोर्ड से बाहर' },
-  dashboardSoon: { en: 'Dashboard is next to build.', hi: 'डैशबोर्ड अगला बनना है।' },
+  navOverview: { en: 'Overview', hi: 'अवलोकन' },
+  navRanking: { en: 'Ghat risk ranking', hi: 'घाट जोखिम क्रम' },
+  navEvidence: { en: 'Water-quality evidence', hi: 'जल-गुणवत्ता साक्ष्य' },
+  navActions: { en: 'Action recommendations', hi: 'कार्य सुझाव' },
+  navBrief: { en: 'Officer brief', hi: 'अधिकारी सारांश' },
+  navQuality: { en: 'Data quality', hi: 'डेटा गुणवत्ता' },
+  navShortOverview: { en: 'Overview', hi: 'अवलोकन' },
+  navShortRanking: { en: 'Ranking', hi: 'क्रम' },
+  navShortEvidence: { en: 'Evidence', hi: 'साक्ष्य' },
+  navShortActions: { en: 'Actions', hi: 'कार्य' },
+  navShortBrief: { en: 'Brief', hi: 'सारांश' },
+  navShortQuality: { en: 'Data', hi: 'डेटा' },
+  disclaimer: {
+    en: 'Historical readings do not establish current water conditions. This is decision support, not an official regulatory determination.',
+    hi: 'ऐतिहासिक माप वर्तमान जल स्थिति सिद्ध नहीं करते। यह निर्णय सहायता है, आधिकारिक नियामक निर्धारण नहीं।',
+  },
+  daysToGo: { en: 'Preparing for Durga visarjan · 20 Oct 2026 · {n} days to go', hi: 'दुर्गा विसर्जन की तैयारी · 20 अक्टूबर 2026 · {n} दिन शेष' },
+  visarjanToday: { en: 'Durga visarjan · 20 Oct 2026 · today', hi: 'दुर्गा विसर्जन · 20 अक्टूबर 2026 · आज' },
+  visarjanPassed: { en: 'Durga visarjan · 20 Oct 2026 · date has passed', hi: 'दुर्गा विसर्जन · 20 अक्टूबर 2026 · तिथि बीत चुकी' },
+  sampleData: { en: 'Sample data', hi: 'नमूना डेटा' },
+  loading: { en: 'Loading readings…', hi: 'माप लोड हो रहे हैं…' },
+  loadError: { en: 'Could not load data', hi: 'डेटा लोड नहीं हो सका' },
+  retry: { en: 'Try again', hi: 'फिर प्रयास करें' },
+  overviewTitle: { en: 'Overview', hi: 'अवलोकन' },
+  overviewLead: {
+    en: 'Which Bhopal ghats show the strongest historical water-quality signals before Durga visarjan.',
+    hi: 'दुर्गा विसर्जन से पहले भोपाल के किन घाटों पर ऐतिहासिक जल-गुणवत्ता संकेत सबसे प्रबल हैं।',
+  },
+  statGhats: { en: 'Ghats analysed', hi: 'विश्लेषित घाट' },
+  statGhatsSub: { en: 'Bhopal ghats in the loaded data', hi: 'लोड किए गए डेटा में भोपाल के घाट' },
+  statHigh: { en: 'High-priority historical signals', hi: 'उच्च-प्राथमिकता ऐतिहासिक संकेत' },
+  statHighSub: { en: 'of {n} ghats', hi: '{n} घाटों में से' },
+  statBreaches: { en: 'Observed limit breaches', hi: 'दर्ज सीमा उल्लंघन' },
+  statBreachesSub: { en: 'DO, BOD or pH readings outside CPCB Class B', hi: 'डीओ, बीओडी या पीएच सीपीसीबी श्रेणी-बी से बाहर' },
+  statGaps: { en: 'Ghats with missing or incomplete data', hi: 'अनुपलब्ध या अधूरे डेटा वाले घाट' },
+  statGapsSub: { en: 'of {n} ghats', hi: '{n} घाटों में से' },
+  headlineTitle: { en: 'Headline findings', hi: 'मुख्य निष्कर्ष' },
+  findDo: { en: '{a} of {b} valid dissolved-oxygen readings were below 5 mg/l (CPCB Class B reference).', hi: '5 mg/l (सीपीसीबी श्रेणी-बी संदर्भ) से कम घुलित ऑक्सीजन माप: {b} मान्य मापों में से {a}।' },
+  findBod: { en: '{a} of {b} valid BOD readings were above 3 mg/l (CPCB Class B reference).', hi: '3 mg/l (सीपीसीबी श्रेणी-बी संदर्भ) से अधिक बीओडी माप: {b} मान्य मापों में से {a}।' },
+  findZero: { en: 'Dissolved oxygen was recorded as 0 mg/l {a} times ({b}).', hi: 'घुलित ऑक्सीजन {a} बार 0 mg/l दर्ज हुई ({b})।' },
+  findGaps: { en: '{a} of {b} ghats have data limits: missing report tables, unsampled stages, or an uncertain site name.', hi: '{b} में से {a} घाटों के डेटा में सीमाएँ हैं: रिपोर्ट में तालिका नहीं, अनमापे चरण, या अनिश्चित स्थल नाम।' },
+  topTitle: { en: 'Top 3 by historical priority', hi: 'ऐतिहासिक प्राथमिकता में शीर्ष 3' },
+  scoreLabel: { en: 'Score {n}', hi: 'अंक {n}' },
+  distTitle: { en: 'Risk-label distribution', hi: 'जोखिम-श्रेणी वितरण' },
+  caveatsTitle: { en: 'What this does not show', hi: 'यह क्या नहीं दिखाता' },
+  caveat1: { en: 'Readings are from 2023–2025 reports. Current water conditions are unknown.', hi: 'माप 2023–2025 की रिपोर्टों से हैं। वर्तमान जल स्थिति अज्ञात है।' },
+  caveat2: { en: 'Missing or unsampled values are unknown, never treated as clean.', hi: 'अनुपलब्ध या अनमापे मान अज्ञात हैं, कभी "साफ़" नहीं माने जाते।' },
+  caveat3: { en: 'The reports print no units. Units shown are the standard ones for each test.', hi: 'रिपोर्टों में इकाइयाँ नहीं छपी हैं। दिखाई गई इकाइयाँ प्रत्येक परीक्षण की मानक इकाइयाँ हैं।' },
+  caveat4: { en: 'Labels are internal groupings, not official categories. Only DO, BOD and pH have a Class B limit here.', hi: 'श्रेणियाँ आंतरिक समूह हैं, आधिकारिक वर्ग नहीं। यहाँ केवल डीओ, बीओडी और पीएच की श्रेणी-बी सीमा है।' },
+  labelHigh: { en: 'High priority', hi: 'उच्च प्राथमिकता' },
+  labelModerate: { en: 'Moderate priority', hi: 'मध्यम प्राथमिकता' },
+  labelLower: { en: 'Lower observed concern', hi: 'कम दर्ज चिंता' },
+  labelInsufficient: { en: 'Insufficient data', hi: 'अपर्याप्त डेटा' },
+  comingNext: { en: 'This screen is not built yet.', hi: 'यह स्क्रीन अभी बनी नहीं है।' },
+  dataLimits: { en: 'Data limits', hi: 'डेटा सीमाएँ' },
 } as const satisfies Record<string, { en: string; hi: string }>
 
 export type StringKey = keyof typeof strings
 
-export function t(key: StringKey, lang: Lang): string {
-  return strings[key][lang]
+/** Looks up a string; `{name}` placeholders are filled from `vars` (numbers and names are never translated). */
+export function t(key: StringKey, lang: Lang, vars: Record<string, string | number> = {}): string {
+  return strings[key][lang].replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name] ?? ''))
 }
+
+export const LABEL_KEY = {
+  'High priority': 'labelHigh',
+  'Moderate priority': 'labelModerate',
+  'Lower observed concern': 'labelLower',
+  'Insufficient data': 'labelInsufficient',
+} as const satisfies Record<string, StringKey>

@@ -11,6 +11,12 @@
   --color-ink: #000000;
   --color-ink-2: #545454;
   --color-ink-3: #6b6b6b;
+  --color-high: #e11900;
+  --color-high-tint: #fdeceb;
+  --color-moderate: #ffc043;
+  --color-moderate-tint: #fff6e0;
+  --color-info: #276ef1;
+  --color-info-tint: #eaf1fe;
 }
 
 body {
@@ -52,3 +58,11 @@ body {
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* "Insufficient data": neutral grey with diagonal hatch, so it never reads as low or safe. */
+.hatch {
+  background-color: #ececec;
+  background-image: repeating-linear-gradient(45deg, transparent 0 5px, rgb(0 0 0 / 0.14) 5px 6px);
+}
+
+.tabular { font-variant-numeric: tabular-nums; }

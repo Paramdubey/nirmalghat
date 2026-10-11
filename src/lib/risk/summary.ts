@@ -11,6 +11,8 @@ export interface Summary {
   doValid: number
   bodAbove: number
   bodValid: number
+  zeroDoCount: number
+  zeroDoSites: string[]
 }
 
 /** Everything on the Overview is computed here from loaded data — nothing hardcoded. */
@@ -22,6 +24,7 @@ export function summarise(risks: SiteRisk[], results: ReadingResult[]): Summary 
   const count = (parameter: string) => results.filter((r) => r.reading.parameter === parameter && r.reading.status === 'valid')
   const doValid = count('Dissolved oxygen')
   const bodValid = count('BOD')
+  const zeroDo = doValid.filter((r) => r.reading.status === 'valid' && r.reading.value === 0)
   return {
     ghatsAnalysed: risks.length,
     highPriority: distribution['High priority'],
@@ -32,5 +35,7 @@ export function summarise(risks: SiteRisk[], results: ReadingResult[]): Summary 
     doValid: doValid.length,
     bodAbove: bodValid.filter((r) => isBreach(r.result)).length,
     bodValid: bodValid.length,
+    zeroDoCount: zeroDo.length,
+    zeroDoSites: [...new Set(zeroDo.map((r) => r.reading.site))].sort(),
   }
 }

@@ -57,7 +57,6 @@ export function explain(risk: Pick<SiteRisk, 'label' | 'doBreachCount' | 'validD
   if (parts.length === 0) {
     parts.push(risk.label === 'Insufficient data' ? 'Too little recorded evidence to rank this ghat.' : 'No Class B breaches in the recorded DO, BOD or pH readings.')
   }
-  if (risk.gaps.length > 0) parts.push(`Data limits: ${risk.gaps.map((g) => g.text).join('; ')}.`)
   parts.push(risk.label === 'High priority' || risk.label === 'Moderate priority'
     ? 'Additional assessment is recommended; current water conditions are unknown.'
     : 'This says nothing about current water conditions.')
