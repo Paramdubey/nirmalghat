@@ -20,7 +20,7 @@ function write(key: string, value: string | null) {
   }
 }
 
-export type View = 'overview' | 'ranking' | 'evidence' | 'actions' | 'agents' | 'quality'
+export type View = 'overview' | 'ranking' | 'evidence' | 'actions' | 'agents' | 'quality' | 'map'
 
 export type BriefLang = 'en' | 'hi' | 'both'
 

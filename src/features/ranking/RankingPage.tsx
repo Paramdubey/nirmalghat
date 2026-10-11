@@ -1,5 +1,5 @@
 import { TriangleAlert } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FieldReportView } from '../../components/FieldReportView'
 import { RiskBadge } from '../../components/RiskBadge'
 import { actionText } from '../../constants/actionText'
@@ -21,11 +21,21 @@ export function RankingPage() {
   const setView = useUi((s) => s.setView)
   const results = useData((s) => s.results)
   const selectSite = useRanking((s) => s.selectSite)
+  const { focusSite, setFocusSite } = useRanking()
 
   const ranking = useMemo(() => buildRanking(results), [results])
   const actions = useMemo(() => generateActions(ranking, results), [ranking, results])
   const years = results.map((r) => r.reading.year)
   const [days] = useState(() => daysUntil(DURGA_VISARJAN_2026, new Date()))
+
+  // Opened from the map: scroll to that ghat's card. The card stays highlighted for a few seconds.
+  useEffect(() => {
+    if (!focusSite || ranking.length === 0) return
+    const el = [...document.querySelectorAll<HTMLElement>('[data-site]')].find((e) => e.dataset.site === focusSite)
+    el?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
+    const timer = setTimeout(() => setFocusSite(null), 3000)
+    return () => clearTimeout(timer)
+  }, [focusSite, ranking.length, setFocusSite])
 
   function viewEvidence(site: string) {
     selectSite(site)
@@ -43,7 +53,7 @@ export function RankingPage() {
 
       <ol className="space-y-3">
         {ranking.map((r, i) => (
-          <RankRow key={r.site} risk={r} rank={i + 1} onView={() => viewEvidence(r.site)} actions={actions.filter((a) => a.site === r.site)} />
+          <RankRow key={r.site} highlighted={focusSite === r.site} risk={r} rank={i + 1} onView={() => viewEvidence(r.site)} actions={actions.filter((a) => a.site === r.site)} />
         ))}
       </ol>
 
@@ -91,11 +101,11 @@ export function RankingPage() {
   )
 }
 
-function RankRow({ risk: r, rank, onView, actions }: { risk: SiteRisk; rank: number; onView: () => void; actions: ProposedAction[] }) {
+function RankRow({ risk: r, rank, onView, actions, highlighted }: { risk: SiteRisk; rank: number; onView: () => void; actions: ProposedAction[]; highlighted: boolean }) {
   const lang = useUi((s) => s.lang)
   const latest = r.latestObservation
   return (
-    <li className="rounded-lg border border-divider p-5">
+    <li data-site={r.site} className={`scroll-mt-32 rounded-lg border p-5 ${highlighted ? 'border-black ring-4 ring-black/20' : 'border-divider'}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <span className="tabular grid size-8 shrink-0 place-items-center rounded-full bg-black text-sm font-bold text-white">{rank}</span>

@@ -406,6 +406,15 @@ export const strings = {
   demoPasswordLabel: { en: 'Password', hi: 'पासवर्ड' },
   demoFill: { en: 'Fill in demo login', hi: 'डेमो लॉगिन भरें' },
   demoAgentNote: { en: 'Field agent accounts are created by the officer under "Field agents". Sign in as the officer first.', hi: 'फील्ड एजेंट खाते अधिकारी "फील्ड एजेंट" में बनाते हैं। पहले अधिकारी के रूप में साइन इन करें।' },
+  mapCta: { en: 'View map', hi: 'नक्शा देखें' },
+  mapTitle: { en: 'Ghat map', hi: 'घाट नक्शा' },
+  mapLead: { en: 'All Bhopal ghats in the data, grouped by water body and marked by historical risk label. Click a ghat to open its ranking card.', hi: 'डेटा के सभी भोपाल घाट, जल स्रोत के अनुसार समूहित और ऐतिहासिक जोखिम श्रेणी से चिह्नित। उसका क्रम कार्ड खोलने के लिए घाट पर क्लिक करें।' },
+  mapSchematic: { en: 'Schematic only: ghats are grouped by water body. Positions are not real locations and nothing is to scale, because the data has no verified coordinates.', hi: 'केवल योजनात्मक: घाट जल स्रोत के अनुसार समूहित हैं। स्थिति वास्तविक स्थान नहीं है और कुछ भी पैमाने पर नहीं, क्योंकि डेटा में सत्यापित निर्देशांक नहीं हैं।' },
+  mapBack: { en: 'Back to overview', hi: 'अवलोकन पर वापस' },
+  mapOpenCard: { en: 'Open ranking card for {site}', hi: '{site} का क्रम कार्ड खोलें' },
+  mapRank: { en: 'Rank {n}', hi: 'क्रम {n}' },
+  mapGhats: { en: '{n} ghat(s)', hi: '{n} घाट' },
+  mapLegend: { en: 'Risk label', hi: 'जोखिम श्रेणी' },
   dataLimits: { en: 'Data limits', hi: 'डेटा सीमाएँ' },
 } as const satisfies Record<string, { en: string; hi: string }>
 

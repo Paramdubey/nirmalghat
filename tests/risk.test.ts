@@ -5,6 +5,7 @@ import { evaluateAll } from '../src/lib/risk/evaluate'
 import { buildRanking, EMPTY_FILTERS, sortRisks } from '../src/lib/risk/rank'
 import { summarise } from '../src/lib/risk/summary'
 import { overviewStats } from '../src/lib/risk/overview'
+import { groupByWaterBody } from '../src/lib/map/groups'
 import { qualityStats } from '../src/lib/risk/quality'
 import { buildCoverage, listEvents } from '../src/lib/risk/events'
 import type { Reading } from '../src/types'
@@ -197,5 +198,16 @@ describe('quality stats', () => {
   test('coverage cells count blanks separately', () => {
     const cells = buildCoverage(real, 'Bairagarh (Sant Hirdaram) kund', listEvents(real))
     expect(cells.reduce((n, c) => n + c.missing, 0)).toBe(q.bySite.find((s) => s.site.startsWith('Bairagarh'))!.missing)
+  })
+})
+
+describe('map groups', () => {
+  test('every ghat appears once, grouped by base water body', () => {
+    const groups = groupByWaterBody(ranking)
+    expect(groups.flatMap((g) => g.sites.map((x) => x.site)).sort()).toEqual(ranking.map((r) => r.site).sort())
+    expect(groups.map((g) => g.waterBody)).toContain('Lower Lake')
+    expect(groups.some((g) => g.waterBody.includes('as printed'))).toBe(false)
+    const lower = groups.find((g) => g.waterBody === 'Lower Lake')!
+    expect(lower.sites.map((x) => x.site)).toEqual(expect.arrayContaining(['Khatlapura ghat', 'Rani Kamlapati ghat / Kamla Park kund']))
   })
 })
