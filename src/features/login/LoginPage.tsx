@@ -1,0 +1,192 @@
+import { ArrowRight, Eye, EyeOff, IdCard, Landmark, Microscope, ShieldCheck } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
+import { t, type StringKey } from '../../constants/i18n'
+import { useUi } from '../../store/ui'
+
+type Role = 'admin' | 'field'
+
+const ROLES: { id: Role; label: StringKey; title: StringKey; body: StringKey }[] = [
+  { id: 'admin', label: 'roleAdmin', title: 'roleAdminTitle', body: 'roleAdminBody' },
+  { id: 'field', label: 'roleField', title: 'roleFieldTitle', body: 'roleFieldBody' },
+]
+
+export function LoginPage() {
+  const { lang, enter } = useUi()
+  const [role, setRole] = useState<Role>('admin')
+  const [showPass, setShowPass] = useState(false)
+  const [remember, setRemember] = useState(false)
+  const active = ROLES.find((r) => r.id === role) ?? ROLES[0]
+
+  function submit(e: FormEvent) {
+    e.preventDefault()
+    // Demo entry: credentials are intentionally not read, stored or sent.
+    enter(remember)
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col bg-surface">
+      <header className="flex items-center justify-between border-b border-divider bg-white px-6 py-5 sm:px-20">
+        <div className="flex items-center gap-4">
+          <div className="grid size-11 place-items-center rounded-lg bg-black text-xl font-bold text-white">N</div>
+          <div>
+            <p className="text-lg font-semibold leading-6">
+              NirmalGhat <span className="font-normal text-ink-3">| निर्मल घाट</span>
+            </p>
+            <p className="caption-mono text-ink-2">{t('orgLine', lang)}</p>
+          </div>
+        </div>
+        <LangToggle />
+      </header>
+
+      <main className="flex flex-1 flex-col items-center gap-5 px-4 py-12">
+        <form onSubmit={submit} className="w-full max-w-[548px] rounded-3xl border border-divider bg-white p-6 sm:p-11">
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1 text-xs font-semibold">
+              <span className="size-2 rounded-full bg-[#E11900]" aria-hidden />
+              {t('prepChip', lang)}
+            </span>
+            <span className="font-mono text-xs text-ink-3">20 Oct 2026</span>
+          </div>
+
+          <h1 className="mt-6 text-4xl font-bold leading-[48px] tracking-tight">NirmalGhat</h1>
+          <p className="mt-1 text-base leading-6 text-ink-2">{t('loginSubtitle', lang)}</p>
+          <p className="mt-1 text-sm text-ink-3">{t('loginSubtitleHi', lang)}</p>
+
+          <p className="label-caps mt-8">{t('selectCredential', lang)}</p>
+          <div role="radiogroup" className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-surface p-1">
+            {ROLES.map((r) => {
+              const Icon = r.id === 'admin' ? Landmark : Microscope
+              const on = r.id === role
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  onClick={() => setRole(r.id)}
+                  className={`flex min-h-11 items-center justify-center gap-2 rounded-lg text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
+                    on ? 'bg-black text-white' : 'text-ink'
+                  }`}
+                >
+                  <Icon className="size-4" aria-hidden />
+                  {t(r.label, lang)}
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="mt-6 flex gap-3 rounded-xl border border-divider bg-surface p-4">
+            <ShieldCheck className="mt-0.5 size-5 shrink-0" aria-hidden />
+            <div>
+              <p className="text-sm font-semibold">{t(active.title, lang)}</p>
+              <p className="mt-1 text-sm leading-5 text-ink-2">{t(active.body, lang)}</p>
+            </div>
+          </div>
+
+          <p className="mt-6 rounded-lg border border-dashed border-ink-3 px-3 py-2 text-sm text-ink-2">
+            {t('demoNotice', lang)}
+          </p>
+
+          <div className="my-6 flex items-center gap-4">
+            <hr className="flex-1 border-divider" />
+            <span className="label-caps">{t('orMunicipalId', lang)}</span>
+            <hr className="flex-1 border-divider" />
+          </div>
+
+          <label htmlFor="email" className="text-sm font-medium">
+            {t('emailLabel', lang)}
+          </label>
+          <div className="relative mt-2">
+            <input
+              id="email"
+              type="email"
+              autoComplete="off"
+              placeholder={t('emailPlaceholder', lang)}
+              className="field"
+            />
+            <IdCard className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-ink-3" aria-hidden />
+          </div>
+
+          <label htmlFor="pass" className="mt-5 block text-sm font-medium">
+            {t('passLabel', lang)}
+          </label>
+          <div className="relative mt-2">
+            <input
+              id="pass"
+              type={showPass ? 'text' : 'password'}
+              autoComplete="off"
+              placeholder="••••••••••••"
+              className="field"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPass((s) => !s)}
+              aria-label={t(showPass ? 'hidePass' : 'showPass', lang)}
+              className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center text-ink-2 focus-visible:outline-2 focus-visible:outline-black"
+            >
+              {showPass ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+            </button>
+          </div>
+
+          <label className="mt-5 flex min-h-11 items-center gap-3 text-sm">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+              className="size-5 rounded border-divider accent-black"
+            />
+            {t('remember', lang)}
+          </label>
+
+          <button
+            type="submit"
+            className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-black text-base font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+          >
+            {t('enter', lang)}
+            <ArrowRight className="size-5" aria-hidden />
+          </button>
+          <p className="mt-6 text-center text-sm text-ink-3">{t('enterHi', lang)}</p>
+        </form>
+
+        <section className="w-full max-w-[548px] rounded-2xl border border-divider bg-white p-6">
+          <div className="flex items-center justify-between">
+            <p className="label-caps flex items-center gap-2 !text-black">
+              <span className="size-2 rounded-full bg-black" aria-hidden />
+              {t('noteTitle', lang)}
+            </p>
+            <span className="caption-mono text-ink-3">{t('noteTag', lang)}</span>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-ink-2">{t('noteBody', lang)}</p>
+          <p className="mt-3 text-sm font-medium">{t('dataBadge', lang)}</p>
+        </section>
+      </main>
+
+      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-divider bg-white px-6 py-5 text-sm text-ink-2 sm:px-20">
+        <span>{t('footer', lang)}</span>
+        <span>{t('footerLicense', lang)}</span>
+      </footer>
+    </div>
+  )
+}
+
+export function LangToggle() {
+  const { lang, setLang } = useUi()
+  return (
+    <div role="radiogroup" aria-label="Language" className="flex gap-1 rounded-lg bg-surface p-1">
+      {(['en', 'hi'] as const).map((l) => (
+        <button
+          key={l}
+          type="button"
+          role="radio"
+          aria-checked={lang === l}
+          onClick={() => setLang(l)}
+          className={`min-h-9 min-w-11 rounded-md px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-black ${
+            lang === l ? 'bg-white shadow-sm' : 'text-ink-2'
+          }`}
+        >
+          {l === 'en' ? 'EN' : 'हिं'}
+        </button>
+      ))}
+    </div>
+  )
+}
