@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, Droplets, ListOrdered, TrendingDown, TriangleAlert } from 'lucide-react'
+import { AlertTriangle, ArrowRight, ListOrdered, TriangleAlert } from 'lucide-react'
 import { useMemo } from 'react'
 import { StatCard } from '../../components/StatCard'
 import { actionText } from '../../constants/actionText'
@@ -76,29 +76,6 @@ export function OverviewPage() {
           footer={[[t('ovUnsampled', lang), String(o.unsampledReadings)], [t('ovProtocol', lang), t('ovProtocolValue', lang)]]} />
       </section>
 
-      <section className="rounded-lg bg-black p-6 text-white sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="caption-mono flex items-center gap-2 text-sm font-semibold uppercase">
-            <span className="size-2 rounded-full bg-[#ff6b5c]" aria-hidden />
-            {t('ovDiscTitle', lang, years)}
-          </h2>
-          <span className="caption-mono text-[#a8a8a8]">MPPCB {[...new Set(results.map((r) => r.reading.year))].sort().join(' · ')}</span>
-        </div>
-        <div className="mt-5 grid gap-4 lg:grid-cols-3">
-          <Discovery tone="text-[#ff6b5c]" title={t('ovZeroTitle', lang)} icon={<TriangleAlert className="size-4" aria-hidden />}
-            body={s.zeroDoCount > 0 ? t('findZero', lang, { a: s.zeroDoCount, b: s.zeroDoSites.join(', ') }) : t('ovZeroNone', lang)}
-            foot={t('ovZeroFoot', lang)} />
-          <Discovery tone="text-moderate" title={t('ovLowDoTitle', lang)} icon={<TrendingDown className="size-4" aria-hidden />}
-            body={t('findDo', lang, { a: s.doBelow, b: s.doValid })} foot={t('ovLowDoFoot', lang, { p: o.doBelowPercent })} />
-          <Discovery tone="text-white" title={t('ovHighBodTitle', lang)} icon={<Droplets className="size-4" aria-hidden />}
-            body={t('findBod', lang, { a: s.bodAbove, b: s.bodValid })} foot={t('ovHighBodFoot', lang, { p: o.bodAbovePercent })} />
-        </div>
-        <p className="caption-mono mt-5 flex flex-wrap justify-between gap-2 text-[#a8a8a8]">
-          <span>{t('ovDiscFoot', lang)}</span>
-          <span>{t('ovBenchmark', lang)}</span>
-        </p>
-      </section>
-
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <section>
           <div className="flex items-center justify-between gap-3">
@@ -157,16 +134,6 @@ export function OverviewPage() {
       </div>
 
       <p className="caption-mono border-t border-divider pt-4 text-ink-3">{t('ovFooter', lang, years)}</p>
-    </div>
-  )
-}
-
-function Discovery({ tone, title, icon, body, foot }: { tone: string; title: string; icon: React.ReactNode; body: string; foot: string }) {
-  return (
-    <div className="flex flex-col rounded-lg border border-[#2c2c2c] bg-[#141414] p-4">
-      <p className={`caption-mono flex items-center justify-between font-semibold uppercase ${tone}`}>{title}{icon}</p>
-      <p className="mt-3 flex-1 text-sm font-semibold leading-5">{body}</p>
-      <p className="mt-4 border-t border-[#2c2c2c] pt-3 text-xs leading-4 text-[#a8a8a8]">{foot}</p>
     </div>
   )
 }
