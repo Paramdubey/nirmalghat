@@ -66,3 +66,15 @@ body {
 }
 
 .tabular { font-variant-numeric: tabular-nums; }
+
+/* Print: only the brief, A4, black on white, no navigation or shadows. */
+@page { size: A4; margin: 14mm; }
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; color: #000; }
+  main { padding: 0 !important; }
+  .brief-sheet { border: 0 !important; padding: 0 !important; box-shadow: none !important; break-inside: auto; }
+  .brief-sheet + .brief-sheet { break-before: page; }
+  .brief-print { margin: 0 !important; }
+  * { color: #000 !important; }
+}

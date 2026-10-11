@@ -23,7 +23,11 @@ function write(key: string, value: string | null) {
 
 export type View = 'overview' | 'ranking' | 'evidence' | 'actions' | 'brief' | 'quality'
 
+export type BriefLang = 'en' | 'hi' | 'both'
+
 interface UiState {
+  briefLang: BriefLang
+  setBriefLang: (l: BriefLang) => void
   view: View
   setView: (view: View) => void
   lang: Lang
@@ -34,6 +38,8 @@ interface UiState {
 }
 
 export const useUi = create<UiState>((set) => ({
+  briefLang: 'both',
+  setBriefLang: (briefLang) => set({ briefLang }),
   view: 'overview',
   setView: (view) => set({ view }),
   lang: read(LANG_KEY) === 'hi' ? 'hi' : 'en',

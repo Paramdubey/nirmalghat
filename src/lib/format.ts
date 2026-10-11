@@ -8,3 +8,11 @@ export function daysUntil(target: Date, today: Date): number {
 }
 
 export const DURGA_VISARJAN_2026 = new Date(2026, 9, 20)
+
+const HI_MONTHS = ['जनवरी', 'फ़रवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर'] // TODO: native review
+const EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+/** "11 Oct 2026" / "11 अक्टूबर 2026". Digits stay Western so numbers match the data. */
+export function formatDate(d: Date, lang: 'en' | 'hi'): string {
+  return `${d.getDate()} ${(lang === 'hi' ? HI_MONTHS : EN_MONTHS)[d.getMonth()]} ${d.getFullYear()}`
+}

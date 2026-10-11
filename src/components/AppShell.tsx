@@ -1,6 +1,7 @@
 import { Activity, ClipboardList, Database, FileText, LayoutDashboard, ListOrdered } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { t, type StringKey } from '../constants/i18n'
+import { ExportMenu } from './ExportMenu'
 import { LangToggle } from '../features/login/LoginPage'
 import { daysUntil, DURGA_VISARJAN_2026 } from '../lib/format'
 import { useData } from '../store/data'
@@ -27,7 +28,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <header className="sticky top-0 z-10 border-b border-divider bg-white">
+      <header className="no-print sticky top-0 z-10 border-b border-divider bg-white">
         <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-8">
           <div className="flex items-center gap-3">
             <div className="grid size-10 place-items-center rounded-lg bg-black text-lg font-bold text-white">N</div>
@@ -40,6 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <span className="hidden rounded-full bg-surface px-3 py-1.5 text-sm font-medium xl:inline">{countdown(lang)}</span>
+            <ExportMenu />
             <LangToggle />
             <button onClick={leave} className="hidden min-h-11 rounded-full bg-surface px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-black sm:block">
               {t('signOut', lang)}
@@ -55,7 +57,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <div className="flex flex-1">
-        <nav aria-label="Main" className="sticky top-28 hidden w-64 shrink-0 self-start border-r border-divider p-4 lg:block">
+        <nav aria-label="Main" className="no-print sticky top-28 hidden w-64 shrink-0 self-start border-r border-divider p-4 lg:block">
           <ul className="space-y-1">
             {NAV.map(({ view: v, label, icon: Icon }) => (
               <li key={v}>
@@ -74,7 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="min-w-0 flex-1 px-4 py-8 pb-28 sm:px-8 lg:pb-8">{children}</main>
       </div>
 
-      <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-6 border-t border-divider bg-white lg:hidden">
+      <nav aria-label="Main" className="no-print fixed inset-x-0 bottom-0 z-10 grid grid-cols-6 border-t border-divider bg-white lg:hidden">
         {NAV.map(({ view: v, short, icon: Icon }) => (
           <button
             key={v}

@@ -4,13 +4,14 @@ import { t, type StringKey } from './constants/i18n'
 import { LoginPage } from './features/login/LoginPage'
 import { OverviewPage } from './features/overview/OverviewPage'
 import { ActionsPage } from './features/actions/ActionsPage'
+import { BriefPage } from './features/brief/BriefPage'
 import { EvidencePage } from './features/site-detail/EvidencePage'
 import { RankingPage } from './features/ranking/RankingPage'
 import { useData } from './store/data'
 import { useUi, type View } from './store/ui'
 
-const VIEW_TITLE: Record<Exclude<View, 'overview' | 'ranking' | 'evidence' | 'actions'>, StringKey> = {
-brief: 'navBrief', quality: 'navQuality',
+const VIEW_TITLE: Record<Exclude<View, 'overview' | 'ranking' | 'evidence' | 'actions' | 'brief'>, StringKey> = {
+quality: 'navQuality',
 }
 
 function Content() {
@@ -41,6 +42,7 @@ function Content() {
   if (view === 'ranking') return <RankingPage />
   if (view === 'evidence') return <EvidencePage />
   if (view === 'actions') return <ActionsPage />
+  if (view === 'brief') return <BriefPage />
   return (
     <div className="mx-auto max-w-5xl">
       <h1 className="text-[32px] font-bold leading-10">{t(VIEW_TITLE[view], lang)}</h1>

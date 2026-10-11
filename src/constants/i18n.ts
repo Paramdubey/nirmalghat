@@ -210,6 +210,15 @@ export const strings = {
   actFilter: { en: 'Action type', hi: 'कार्य का प्रकार' },
   actNoData: { en: 'No actions to propose from the loaded data.', hi: 'लोड किए गए डेटा से कोई कार्य प्रस्तावित नहीं।' },
   actPage: { en: 'PDF page', hi: 'पीडीएफ पृष्ठ' },
+  briefTitle: { en: 'Officer brief', hi: 'अधिकारी सारांश' },
+  briefLead: { en: 'A one-page brief built from the data with fixed templates. No AI is involved.', hi: 'डेटा से निश्चित टेम्पलेट द्वारा बना एक-पृष्ठ का सारांश। इसमें एआई का उपयोग नहीं है।' },
+  briefLanguage: { en: 'Brief language', hi: 'सारांश की भाषा' },
+  copyBrief: { en: 'Copy brief', hi: 'सारांश कॉपी करें' },
+  copyFailed: { en: 'Copy blocked by browser', hi: 'ब्राउज़र ने कॉपी रोकी' },
+  printBrief: { en: 'Print / Save as PDF', hi: 'प्रिंट / पीडीएफ सहेजें' },
+  briefNoActions: { en: 'No proposed actions are included yet. Choose them on', hi: 'अभी कोई प्रस्तावित कार्य शामिल नहीं है। चुनें:' },
+  briefActionsIncluded: { en: '{n} proposed action(s) included. Change the selection on', hi: '{n} प्रस्तावित कार्य शामिल हैं। चयन बदलें:' },
+  exportMenu: { en: 'Export / Share', hi: 'निर्यात / साझा' },
   dataLimits: { en: 'Data limits', hi: 'डेटा सीमाएँ' },
 } as const satisfies Record<string, { en: string; hi: string }>
 

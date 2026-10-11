@@ -11,6 +11,8 @@ export interface Summary {
   doValid: number
   bodAbove: number
   bodValid: number
+  phOut: number
+  phValid: number
   zeroDoCount: number
   zeroDoSites: string[]
 }
@@ -24,6 +26,7 @@ export function summarise(risks: SiteRisk[], results: ReadingResult[]): Summary 
   const count = (parameter: string) => results.filter((r) => r.reading.parameter === parameter && r.reading.status === 'valid')
   const doValid = count('Dissolved oxygen')
   const bodValid = count('BOD')
+  const phValid = count('pH')
   const zeroDo = doValid.filter((r) => r.reading.status === 'valid' && r.reading.value === 0)
   return {
     ghatsAnalysed: risks.length,
@@ -35,6 +38,8 @@ export function summarise(risks: SiteRisk[], results: ReadingResult[]): Summary 
     doValid: doValid.length,
     bodAbove: bodValid.filter((r) => isBreach(r.result)).length,
     bodValid: bodValid.length,
+    phOut: phValid.filter((r) => isBreach(r.result)).length,
+    phValid: phValid.length,
     zeroDoCount: zeroDo.length,
     zeroDoSites: [...new Set(zeroDo.map((r) => r.reading.site))].sort(),
   }
