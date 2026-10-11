@@ -18,9 +18,9 @@ MPPCB tests the water at Bhopal's idol-immersion ghats three times per festival 
 1. a **ranked list of ghats** by historical risk, with a plain-language reason for each rank,
 2. every reading **traceable to its report and PDF page**,
 3. **proposed actions** tied to those readings, and
-4. a short **Hindi + English field brief** per ghat that can be handed to a field agent.
+4. a short **Hindi + English field brief** per ghat, **assigned to one or more field agents**, who record new readings on a simple bilingual form after the visit.
 
-One user, one workflow: *historical data → risk ranking → evidence review → proposed actions → bilingual field brief.*
+Two roles: the **BMC officer** (analysis, agents, assignments) and the **field agent** (own briefs, report form). Workflow: *historical data → risk ranking → evidence review → proposed actions → assigned field brief → field report.*
 
 ## Screenshots
 
@@ -29,10 +29,12 @@ One user, one workflow: *historical data → risk ranking → evidence review �
 | ![Overview](docs/screenshots/overview.png) | ![Ranking](docs/screenshots/ranking.png) |
 | **Water-quality evidence** | **Action recommendations** |
 | ![Evidence](docs/screenshots/evidence.png) | ![Actions](docs/screenshots/actions.png) |
-| **Field brief (from a ranking card)** | **Data quality** |
-| ![Field brief](docs/screenshots/field-brief.png) | ![Data quality](docs/screenshots/data-quality.png) |
+| **Field brief preview** | **Field agents (officer)** |
+| ![Field brief](docs/screenshots/field-brief.png) | ![Field agents](docs/screenshots/agents.png) |
+| **Field agent app (phone width)** | **Data quality** |
+| ![Field app](docs/screenshots/field-app.png) | ![Data quality](docs/screenshots/data-quality.png) |
 
-The entry page is a demo screen: [docs/screenshots/login.png](docs/screenshots/login.png).
+Sign-in page: [docs/screenshots/login.png](docs/screenshots/login.png).
 
 ## Run it in 5 steps
 
@@ -41,18 +43,24 @@ git clone <this repo>        # 1. get the code
 cd nirmalghat                # 2. enter the folder
 npm install                  # 3. install dependencies (Node 20+)
 npm run dev                  # 4. start the app
-# 5. open http://localhost:5173 and click "Access Intelligence Dashboard"
+# 5. open http://localhost:5173 and sign in as "BMC Officer" with the demo passcode: nirmalghat-demo
 ```
+
+`npm run dev` starts the app **and** its small API server (Node + SQLite, no external services) in one process. The database is created at `server/data/nirmalghat.db` (git-ignored). To run the built app instead: `npm run build && npm start` (port 8787, set `PORT` to change).
+
+Set `OFFICER_PASSCODE` to replace the demo passcode, and `NIRMALGHAT_DB` to move the database file. Field agents are created by the officer under **Field agents** and sign in with their name or squad label and a 4-digit PIN.
 
 Checks: `npm run lint` · `npm run typecheck` · `npm run test` · `npm run build`
 
-No backend, database, API keys or paid services. Everything runs in the browser from the CSVs in `public/data/`.
+No API keys or paid services. The risk analysis runs in the browser from the CSVs in `public/data/`; only sign-in, field agents, assignments and field reports use the local server.
 
 ## Key features
 
 - **Overview** — four summary cards, key findings, top-3 ghats, risk-label distribution. Every number is computed from the loaded CSV, nothing is hardcoded.
 - **Ghat risk ranking** — a fixed list for the next immersion event. Each card shows dissolved oxygen (DO), BOD, breaches, latest observation with page, completeness, the explanation, and warnings (medium site match, missing Durga 2025 table, unsampled stages). A collapsible "How the ranking works" shows every weight and a per-ghat score breakdown.
-- **Field brief (on each ranking card)** — tick that ghat's recommended actions, optionally choose a field agent linked to that ghat, then preview, copy or print a brief in English, हिन्दी or both. Built from fixed templates: no AI.
+- **Field brief (on each ranking card)** — tick that ghat's recommended actions, tick one or more field agents linked to that ghat, preview the brief (English, हिन्दी or both; copy or print), then **Assign brief**. Built from fixed templates: no AI.
+- **Field agents (officer section)** — create field agent accounts (name or squad label, 4-digit PIN, ghats covered), see the briefs assigned to each agent and the field reports they submit.
+- **Field agent app** — an agent signs in on their phone, sees only their own briefs (English / हिन्दी), and fills a simple form (date, stage, pH, DO, BOD required; COD, solids, turbidity, conductivity and four metals optional; value, BDL, ND or not measured) after the visit. Field reports are stored **separately**, labelled *Field-recorded, unverified, not MPPCB data*, and are **never** used in the risk score or ranking.
 - **Water-quality evidence** — DO, BOD and pH charts over every festival stage with Class B reference lines. Lines **break** where there is no number; BDL, ND, not-sampled and no-table each have their own marker. An evidence table lists every reading with value and unit, as-printed text, criterion, result, PDF page, source report and a copy-citation button.
 - **Action recommendations** — proposals derived from the evidence, each stamped *Proposed — not assigned*, with reason, supporting readings (with pages), a suggested team and the evidence needed to verify completion.
 - **Data quality** — coverage matrix (ghat × festival × stage), missing readings by ghat and by parameter, site-name uncertainty, parameters with no Class B limit, code legend, loader validation, source reports.
@@ -60,7 +68,7 @@ No backend, database, API keys or paid services. Everything runs in the browser 
 
 ## Stack
 
-Vite · React 19 · TypeScript (strict) · Tailwind CSS v4 · Recharts · PapaParse · Zustand · Lucide icons · self-hosted Inter and Noto Sans Devanagari (`@fontsource`, no external requests) · Vitest + React Testing Library.
+Vite · React 19 · TypeScript (strict) · Tailwind CSS v4 · Recharts · PapaParse · Zustand · Lucide icons · Node 24 built-ins for the API (`node:http`, `node:sqlite`, `node:crypto`; no extra server dependencies) · self-hosted Inter and Noto Sans Devanagari (`@fontsource`, no external requests) · Vitest + React Testing Library.
 
 ## Datasets
 
@@ -103,7 +111,7 @@ Reference: **CPCB Class B (outdoor bathing)** — pH 6.5–8.5 (inclusive), DO �
 
 ## What works and what doesn't
 
-**Works** (68 automated tests, lint, typecheck and build pass; the screens were checked in headless Chrome)
+**Works** (77 automated tests, lint, typecheck and build pass; the officer and field-agent flows were driven end to end in headless Chrome, and the production server was smoke-tested)
 
 - Loading and validating the real CSV (1,524 rows, 7 ghats, 0 loader warnings), with an error that names the file if loading fails and no silent fallback.
 - Class B comparison, the ranking, explanations, coverage and data-quality counts, all unit-tested against the real data. The guide's figures are recomputed from the data and match: 42 of 116 DO readings below 5 mg/l, 100 of 112 BOD readings above 3 mg/l.
@@ -112,7 +120,11 @@ Reference: **CPCB Class B (outdoor bathing)** — pH 6.5–8.5 (inclusive), DO �
 **Doesn't, or isn't verified**
 
 - **Not live monitoring.** Nothing here describes current water conditions. Not an official determination.
-- **No real login, assignment or notifications.** The entry page is a demo and reads nothing you type. The field-agent roster is typed by the officer and stored **only in this browser** (localStorage). A field brief names the agent but nothing is sent, and nothing is ever shown as assigned or completed. Avoid entering personal contact details.
+- **Sign-in is a prototype.** The officer passcode and agents' 4-digit PINs are checked by the local server (PINs are hashed with scrypt, sessions are random tokens that expire after 12 hours, repeated wrong attempts lock out for 15 minutes). A 4-digit PIN is **not** strong security and this is **not** a replacement for a real identity system. The demo officer passcode is public in this README; set `OFFICER_PASSCODE` before sharing a server.
+- **No notifications.** An assigned brief appears when the agent opens the app (there is a Refresh button); nothing is pushed to phones. A submitted field report is shown as "submitted · not verified", never as an action completed or verified.
+- **Single local server.** Data lives in one SQLite file on whoever runs the server; there is no backup, multi-server sync or offline mode for the field app. For agents to reach it, the server must be reachable from their phones (same network or a host you provide).
+- **Field readings are not charted.** They appear as a labelled table on the evidence page and in the officer's reports, not as chart series, and they never change the ranking. Entered values are range-checked but not otherwise verified.
+- **Avoid personal data.** Use names or squad labels, not contact details.
 - **Hindi text has not had a native-speaker review.** Every Hindi string is marked `TODO: native review`. Ghat explanations in the ranking cards stay in English; Hindi appears in the UI strings and the generated briefs.
 - **Label thresholds (120 / 50) are judgement calls** and should be reviewed by someone who knows the domain.
 - **Suggested teams** in the action text (for example "MPPCB regional office") are generic suggestions, not verified roles.
@@ -137,11 +149,12 @@ src/lib/data      CSV loading, parsing, validation
 src/lib/risk      Class B comparison, scoring, ranking, chart series, quality stats (pure, tested)
 src/lib/actions   proposed actions from evidence
 src/lib/brief     field-brief generation (English / Hindi templates)
+server/           local API: sign-in, field agents, assignments, field reports (Node + SQLite)
 src/constants     CPCB values, weights and rationale, UI and brief text
-src/features      overview · ranking · site-detail · actions · data-quality · login
+src/features      overview · ranking · site-detail · actions · agents · agent (field app) · data-quality · login
 tests             Vitest, including smoke tests on the real CSV
 ```
 
 ## Licence
 
-[MIT](LICENSE). No API keys or secrets are used or stored in this repository.
+[MIT](LICENSE). No API keys or secrets are used or stored in this repository (the demo officer passcode is a documented default, not a secret).
