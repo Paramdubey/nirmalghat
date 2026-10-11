@@ -122,6 +122,24 @@ describe('filters and sorting', () => {
   })
 })
 
+describe('filters never change the label', () => {
+  test('score and label come from all readings; counts follow the filter', () => {
+    const one = buildRanking(results, { ...EMPTY_FILTERS, festivals: ['Durga'], years: [2024], phases: ['pre'] })
+    for (const r of one) {
+      const full = ranking.find((x) => x.site === r.site)!
+      expect(r.label).toBe(full.label)
+      expect(r.score).toBe(full.score)
+      expect(r.breachCount).toBeLessThan(full.breachCount)
+    }
+  })
+  test('score breakdown adds up to the score', () => {
+    for (const r of ranking) {
+      const b = r.breakdown
+      expect(Math.abs(b.doPoints + b.bodPoints + b.phPoints + b.recurrencePoints - r.score)).toBeLessThan(0.3)
+    }
+  })
+})
+
 describe('coverage matrix', () => {
   test('marks festivals with no rows as "no table"', () => {
     const cells = buildCoverage(real, 'Malikhedi kund', listEvents(real))

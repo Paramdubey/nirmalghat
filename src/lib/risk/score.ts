@@ -77,7 +77,7 @@ export function scoreSite(site: string, results: ReadingResult[], ctx: RankingCo
   const allOwn = all.filter((r) => r.reading.site === site)
   const allCore = allOwn.filter(isCore)
 
-  let score = 0
+  const points = { 'Dissolved oxygen': 0, BOD: 0, pH: 0 }
   const breachEvents = new Set<string>()
   const counts = { 'Dissolved oxygen': 0, BOD: 0, pH: 0 }
   let validDo = 0
@@ -102,10 +102,11 @@ export function scoreSite(site: string, results: ReadingResult[], ctx: RankingCo
     if (!isBreach(r.result)) continue
     const key = reading.parameter as keyof typeof counts
     counts[key]++
-    score += PARAMETER_WEIGHT[key] * severity(reading.parameter, reading.value) * recency(reading.year, ctx.newestYear)
+    points[key] += PARAMETER_WEIGHT[key] * severity(reading.parameter, reading.value) * recency(reading.year, ctx.newestYear)
     if (reading.parameter !== 'pH') breachEvents.add(eventKey(reading))
   }
-  score += RECURRENCE_PER_EVENT * breachEvents.size
+  const recurrencePoints = RECURRENCE_PER_EVENT * breachEvents.size
+  const score = points['Dissolved oxygen'] + points.BOD + points.pH + recurrencePoints
 
   // Data confidence: kept separate from the score. Gaps can only flag, never lower risk.
   const gaps: GapFlag[] = []
@@ -138,6 +139,7 @@ export function scoreSite(site: string, results: ReadingResult[], ctx: RankingCo
     matchConfidence: first?.siteMatchConfidence ?? 'high',
     label,
     score: round1(score),
+    breakdown: { doPoints: round1(points['Dissolved oxygen']), bodPoints: round1(points.BOD), phPoints: round1(points.pH), recurrencePoints },
     breachCount: counts['Dissolved oxygen'] + counts.BOD + counts.pH,
     doBreachCount: counts['Dissolved oxygen'],
     bodBreachCount: counts.BOD,

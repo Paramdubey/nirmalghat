@@ -3,11 +3,12 @@ import { AppShell } from './components/AppShell'
 import { t, type StringKey } from './constants/i18n'
 import { LoginPage } from './features/login/LoginPage'
 import { OverviewPage } from './features/overview/OverviewPage'
+import { RankingPage } from './features/ranking/RankingPage'
 import { useData } from './store/data'
 import { useUi, type View } from './store/ui'
 
-const VIEW_TITLE: Record<Exclude<View, 'overview'>, StringKey> = {
-  ranking: 'navRanking', evidence: 'navEvidence', actions: 'navActions', brief: 'navBrief', quality: 'navQuality',
+const VIEW_TITLE: Record<Exclude<View, 'overview' | 'ranking'>, StringKey> = {
+  evidence: 'navEvidence', actions: 'navActions', brief: 'navBrief', quality: 'navQuality',
 }
 
 function Content() {
@@ -35,6 +36,7 @@ function Content() {
     )
   }
   if (view === 'overview') return <OverviewPage />
+  if (view === 'ranking') return <RankingPage />
   return (
     <div className="mx-auto max-w-5xl">
       <h1 className="text-[32px] font-bold leading-10">{t(VIEW_TITLE[view], lang)}</h1>

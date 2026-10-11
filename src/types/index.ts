@@ -80,6 +80,8 @@ export interface SiteRisk {
   label: RiskLabel
   /** Observed-evidence score only. Data gaps never change it. */
   score: number
+  /** Where the score comes from, so the ranking can be explained. */
+  breakdown: { doPoints: number; bodPoints: number; phPoints: number; recurrencePoints: number }
   breachCount: number
   doBreachCount: number
   bodBreachCount: number
