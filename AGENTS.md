@@ -22,7 +22,7 @@ It is **decision support**, not live monitoring, and not an official regulatory 
 - Dashboard (Overview), Ghat risk ranking with filters/sorting, Site detail (charts + evidence table), Proposed actions, Bilingual officer brief (print/PDF/copy), Data quality panel.
 - The risk analysis runs client-side from the supplied CSVs. Supabase adds officer sign-in (email + password), field agent accounts (name + 6-digit PIN, via Supabase Auth), brief assignments and field reports, protected by Row Level Security (supabase/migrations). The Supabase URL and public anon key live in a git-ignored .env; the service_role key is never used or committed.
 - Bhopal dataset only (7 ghats). The statewide CSV is out of scope and must never be mixed into Bhopal rankings.
-- No map (no verified coordinates exist). No multi-user roles, task assignment, or approvals. No LLM-generated rankings or numbers.
+- A map exists (Leaflet + OpenStreetMap, no key) but no coordinates are ever invented: an admin sets each ghat's position and it is labelled as admin-set. No LLM-generated rankings or numbers.
 - Optional only after the core is done: a clearly labelled "Future: task tracking — mock, not active" teaser.
 
 Design system: **Uber-inspired** — black/white dominant, bold large stats, flat surfaces, pill buttons, restrained color used only for meaning. Reference designs will be provided as screenshots in `design-references/`; match them closely.
@@ -316,7 +316,7 @@ Be concise. Explain changes and how to test them in plain terms. Be upfront abou
 ## Important Constraints (do not build ahead without being asked)
 
 - No paid APIs. Supabase (free tier) is the only external service and must be named in the README; the service_role key never enters this app or git
-- No map or invented coordinates
+- No invented coordinates (positions come only from an admin placing a pin)
 - No LLM-generated rankings, scores, or numbers
 - Two roles only: BMC officer and field agent. No notifications or approval workflows. A field report is shown as "submitted · not verified", never as an action completed or verified
 - No statewide data mixed into Bhopal rankings

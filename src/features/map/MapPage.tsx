@@ -1,12 +1,14 @@
-import { AlertTriangle, ArrowLeft, CircleHelp, Info, TriangleAlert, Waves } from 'lucide-react'
-import { useMemo } from 'react'
+import { AlertTriangle, ArrowLeft, CircleHelp, Info, MapPin as MapPinIcon, TriangleAlert, Waves } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { LABEL_KEY, t } from '../../constants/i18n'
 import { groupByWaterBody, heatLevel, heatScale } from '../../lib/map/groups'
 import { buildRanking } from '../../lib/risk/rank'
 import { useOfficerData } from '../../store/agents'
+import { useLocations } from '../../store/locations'
 import { useData } from '../../store/data'
 import { useRanking } from '../../store/ranking'
 import { useUi } from '../../store/ui'
+import { LeafletMap, type MapPin } from './LeafletMap'
 import type { RiskLabel } from '../../types'
 
 const LABELS: RiskLabel[] = ['High priority', 'Moderate priority', 'Lower observed concern', 'Insufficient data']
@@ -30,11 +32,38 @@ export function MapPage() {
   const groups = useMemo(() => groupByWaterBody(ranking), [ranking])
   const scale = useMemo(() => heatScale(ranking), [ranking])
   const assignments = useOfficerData((s) => s.assignments)
+  const { locations, error: locError, load: loadLocations, save } = useLocations()
+  const [placing, setPlacing] = useState<string | null>(null)
+  const [pending, setPending] = useState<{ lat: number; lng: number } | null>(null)
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => { void loadLocations() }, [loadLocations])
+  const pins: MapPin[] = useMemo(() => ranking.flatMap((r) => {
+    const loc = locations.find((l) => l.site === r.site)
+    return loc ? [{ site: r.site, lat: loc.lat, lng: loc.lng, rank: ranking.indexOf(r) + 1, label: r.label, summary: `${t(LABEL_KEY[r.label], lang)} · ${t('mapScore', lang, { n: r.score })}` }] : []
+  }), [ranking, locations, lang])
   const rankOf = (site: string) => ranking.findIndex((r) => r.site === site) + 1
 
-  function open(site: string) {
+  const open = useCallback((site: string) => {
     setFocusSite(site)
     setView('ranking')
+  }, [setFocusSite, setView])
+  const place = useCallback((lat: number, lng: number) => setPending({ lat, lng }), [])
+
+  async function savePending() {
+    if (!placing || !pending) return setMessage({ ok: false, text: t('mapNeedClick', lang) })
+    setSaving(true)
+    try {
+      await save(placing, pending.lat, pending.lng)
+      setMessage({ ok: true, text: t('mapSaved', lang, { site: placing }) })
+      setPlacing(null)
+      setPending(null)
+    } catch (e) {
+      setMessage({ ok: false, text: e instanceof Error ? e.message : 'Could not save' })
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -49,6 +78,20 @@ export function MapPage() {
       <p className="flex items-start gap-2 rounded-lg border border-dashed border-ink-3 p-3 text-sm text-ink-2">
         <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />{t('mapSchematic', lang)}
       </p>
+      {locError && <p role="alert" className="rounded-lg bg-moderate-tint p-3 text-sm font-medium">{locError}</p>}
+
+      {placing && (
+        <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-black p-3 text-sm text-white">
+          <span>{t('mapPlacing', lang, { site: placing })}</span>
+          <span className="flex gap-2">
+            <button onClick={savePending} disabled={saving || !pending} className="min-h-11 rounded-full bg-white px-5 font-semibold text-black disabled:opacity-50">{t('mapSave', lang)}</button>
+            <button onClick={() => { setPlacing(null); setPending(null) }} className="min-h-11 rounded-full bg-[#2c2c2c] px-5 font-semibold">{t('mapCancel', lang)}</button>
+          </span>
+        </div>
+      )}
+      {message && <p role="status" className={`text-sm font-medium ${message.ok ? '' : 'text-high'}`}>{message.text}</p>}
+
+      <LeafletMap pins={pins} openLabel={t('mapPopupOpen', lang)} onOpen={open} placing={placing !== null} pending={pending} onPlace={place} />
 
       <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm" aria-label={t('mapLegend', lang)}>
         {LABELS.map((l) => {
@@ -71,6 +114,7 @@ export function MapPage() {
         </div>
       )}
 
+      <h2 className="text-xl font-bold leading-7">{t('mapListTitle', lang)}</h2>
       <div className="grid gap-4 md:grid-cols-2">
         {groups.map((g) => (
           <section key={g.waterBody} className="overflow-hidden rounded-2xl border border-divider bg-info-tint/40">
@@ -95,6 +139,20 @@ export function MapPage() {
                       </span>
                       {r.gaps.length > 0 && <TriangleAlert className="size-4 shrink-0" aria-label="Data limits" />}
                     </button>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 px-2 text-xs text-ink-2">
+                      {(() => {
+                        const loc = locations.find((l) => l.site === r.site)
+                        return (
+                          <>
+                            <span className="flex items-center gap-1"><MapPinIcon className="size-3.5" aria-hidden />{loc ? t('mapSetBy', lang, { when: new Date(loc.setAt).toLocaleDateString('en-IN') }) : t('mapNotSet', lang)}</span>
+                            <button onClick={() => { setPlacing(r.site); setPending(null); setMessage(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                              className="min-h-11 rounded-full bg-surface px-3 font-semibold text-black focus-visible:outline-2 focus-visible:outline-black">
+                              {t('mapSet', lang)}
+                            </button>
+                          </>
+                        )
+                      })()}
+                    </div>
                     {briefs.length > 0 && (
                       <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1 px-2 text-sm">
                         {briefs.map((a) => (

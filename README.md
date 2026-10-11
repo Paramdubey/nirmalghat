@@ -51,7 +51,7 @@ Step 4 needs a one-time Supabase setup (below) for sign-in, field agents, assign
 ### One-time Supabase setup (free tier, about 5 minutes)
 
 1. Create a project at <https://supabase.com>. In **Authentication → Providers → Email**, turn **off** "Confirm email" (agent accounts use a derived address that never receives mail).
-2. Open **SQL Editor** and run [supabase/migrations/0001_nirmalghat.sql](supabase/migrations/0001_nirmalghat.sql). It creates the tables and the Row Level Security policies.
+2. Open **SQL Editor** and run [supabase/migrations/0001_nirmalghat.sql](supabase/migrations/0001_nirmalghat.sql), then [supabase/migrations/0002_ghat_locations.sql](supabase/migrations/0002_ghat_locations.sql) (map positions). They create the tables and the Row Level Security policies.
 3. Create the officer: **Authentication → Users → Add user** (email + password, tick auto-confirm), then run in the SQL editor, with your email:
    ```sql
    update auth.users
@@ -68,7 +68,7 @@ No paid services. The risk analysis runs in the browser from the CSVs in `public
 ## Key features
 
 - **Overview** — four summary cards, key findings, top-3 ghats, risk-label distribution. Every number is computed from the loaded CSV, nothing is hardcoded.
-- **Ghat map** (button on the Overview) — a **schematic**, not a geographic map: the data has no verified coordinates, so ghats are grouped by water body, marked by risk label and shaded by historical risk score (a heat scale from MPPCB readings only; "Insufficient data" ghats are hatched, never shaded). Each ghat also lists its assigned agents with their brief status (assigned, or field report submitted · not verified). Clicking a ghat opens the ranking page scrolled to its card.
+- **Ghat map** (button on the Overview) — a real **OpenStreetMap** map (Leaflet, no API key) with a pin per ghat, coloured and numbered by risk label. The MPPCB data has no coordinates, so **none are invented**: an admin places each ghat on the map with **Set location**, and it is stored in Supabase (`ghat_locations`) as "position set by admin". Ghats without a position are listed as "Location not set". Below the map each ghat is shaded by historical risk score (MPPCB readings only; "Insufficient data" is hatched, never shaded) and lists its agents with brief status. Clicking a pin or ghat opens the ranking page at its card.
 - **Ghat risk ranking** — a fixed list for the next immersion event. Each card shows dissolved oxygen (DO), BOD, breaches, latest observation with page, completeness, the explanation, and warnings (medium site match, missing Durga 2025 table, unsampled stages). A collapsible "How the ranking works" shows every weight and a per-ghat score breakdown.
 - **Field brief (on each ranking card)** — tick that ghat's recommended actions, tick one or more field agents linked to that ghat, preview the brief (English, हिन्दी or both; copy or print), then **Assign brief**. Built from fixed templates: no AI.
 - **Field agents (officer section)** — create field agent accounts (name or squad label, 6-digit PIN, ghats covered), see the briefs assigned to each agent and the field reports they submit.
@@ -80,7 +80,7 @@ No paid services. The risk analysis runs in the browser from the CSVs in `public
 
 ## Stack
 
-Vite · React 19 · TypeScript (strict) · Tailwind CSS v4 · Recharts · PapaParse · Zustand · Lucide icons · Supabase (Auth + Postgres with Row Level Security) via `@supabase/supabase-js` · self-hosted Inter and Noto Sans Devanagari (`@fontsource`, no external requests) · Vitest + React Testing Library.
+Vite · React 19 · TypeScript (strict) · Tailwind CSS v4 · Recharts · Leaflet · PapaParse · Zustand · Lucide icons · Supabase (Auth + Postgres with Row Level Security) via `@supabase/supabase-js` · self-hosted Inter and Noto Sans Devanagari (`@fontsource`, no external requests) · Vitest + React Testing Library.
 
 ## Datasets
 
@@ -147,7 +147,7 @@ Reference: **CPCB Class B (outdoor bathing)** — pH 6.5–8.5 (inclusive), DO �
 - **Label thresholds (120 / 50) are judgement calls** and should be reviewed by someone who knows the domain.
 - **Suggested teams** in the action text (for example "MPPCB regional office") are generic suggestions, not verified roles.
 - **Print/PDF**: the print layout was checked with emulated print media, not through a real browser print dialog or a saved PDF. Tested in Chrome only; not tested on Safari or Firefox, or on a real phone.
-- **No real map**: no verified coordinates exist, so the Ghat map is a schematic grouped by water body (not real locations, not to scale). Supplying verified coordinates would allow a Leaflet/OpenStreetMap map. No microbiological (coliform) assessment.
+- **Map positions are admin-set, not verified.** There are no coordinates in the data, so a ghat shows on the map only after an admin places it by clicking. Positions are only as good as the admin's click; nothing checks them against a survey. The map loads tiles from OpenStreetMap (a third-party request) and follows its [tile usage policy](https://operations.osmfoundation.org/policies/tiles/), which suits light use. Only officers can read or set positions. No microbiological (coliform) assessment.
 - **Source page numbers** are taken from the supplied CSV and shown as text; they were not re-checked against the PDFs by this app.
 
 ## Sources
@@ -159,6 +159,7 @@ Reference: **CPCB Class B (outdoor bathing)** — pH 6.5–8.5 (inclusive), DO �
 - Free Press Journal, NGT immersion ban and new BMC ghats (26 Feb 2026) — <https://www.freepressjournal.in/amp/bhopal/mp-news-idol-immersion-to-shift-from-lakes-to-safer-sites-ngt-ban-pushes-bmc-to-build-4-dedicated-ghats>
 - Drik Panchang, Durga visarjan date 20 October 2026 — <https://www.drikpanchang.com/navratri/durga-puja/durga-visarjan-date-time.html?year=2026>
 - Supabase (Auth + Postgres, free tier) — <https://supabase.com>
+- OpenStreetMap map tiles © OpenStreetMap contributors (ODbL) — <https://www.openstreetmap.org/copyright>; Leaflet — <https://leafletjs.com>
 - Supplied hackathon material: [Participant guide](resources) and [data dictionary](data/DATA_DICTIONARY.md). The Upper and Lower Lake monthly and comparative reports in `resources/` were supplied but are not used by the app.
 
 ## Project layout

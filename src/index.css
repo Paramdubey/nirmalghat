@@ -82,3 +82,24 @@ body {
   .brief-print { margin: 0 !important; }
   * { color: #000 !important; }
 }
+
+/* Map pins (Leaflet divIcons). Status is also written in the popup and the list, never colour alone. */
+.ghat-pin {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
+  font: 700 14px/1 var(--font-sans);
+}
+.pin-high { background: #e11900; color: #fff; }
+.pin-moderate { background: #ffc043; color: #000; }
+.pin-lower { background: #000; color: #fff; }
+.pin-insufficient {
+  background-color: #ececec;
+  background-image: repeating-linear-gradient(45deg, transparent 0 4px, rgb(0 0 0 / 0.25) 4px 5px);
+  color: #000;
+}
+.pin-pending { background: #276ef1; color: #fff; }
