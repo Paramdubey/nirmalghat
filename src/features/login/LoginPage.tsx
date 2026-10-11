@@ -1,6 +1,7 @@
 import { ArrowRight, Eye, EyeOff, IdCard, Landmark, Microscope, ShieldCheck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { t, type StringKey } from '../../constants/i18n'
+import { Logo } from '../../components/Logo'
 import { agentEmail, PIN_PATTERN, supabase } from '../../lib/supabase'
 import { useUi } from '../../store/ui'
 
@@ -46,7 +47,7 @@ export function LoginPage() {
     <div className="flex min-h-screen flex-col bg-surface">
       <header className="flex items-center justify-between border-b border-divider bg-white px-6 py-5 sm:px-20">
         <div className="flex items-center gap-4">
-          <div className="grid size-11 place-items-center rounded-lg bg-black text-xl font-bold text-white">N</div>
+          <Logo className="h-11" />
           <div>
             <p className="text-lg font-semibold leading-6">
               NirmalGhat <span className="font-normal text-ink-3">| निर्मल घाट</span>
@@ -67,7 +68,8 @@ export function LoginPage() {
             <span className="font-mono text-xs text-ink-3">20 Oct 2026</span>
           </div>
 
-          <h1 className="mt-6 text-4xl font-bold leading-[48px] tracking-tight">NirmalGhat</h1>
+          <Logo className="mt-6 h-24" />
+          <h1 className="mt-4 text-4xl font-bold leading-[48px] tracking-tight">NirmalGhat</h1>
           <p className="mt-1 text-base leading-6 text-ink-2">{t('loginSubtitle', lang)}</p>
           <p className="mt-1 text-sm text-ink-3">{t('loginSubtitleHi', lang)}</p>
 

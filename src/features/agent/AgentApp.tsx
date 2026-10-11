@@ -1,6 +1,7 @@
 import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { BriefSheet } from '../../components/BriefSheet'
+import { Logo } from '../../components/Logo'
 import { FieldReportView } from '../../components/FieldReportView'
 import { t } from '../../constants/i18n'
 import type { Assignment } from '../../lib/apiTypes'
@@ -27,9 +28,12 @@ export function AgentApp() {
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-divider bg-white px-4 py-3 sm:px-8">
-        <div>
-          <p className="text-base font-semibold leading-5">NirmalGhat <span className="font-normal text-ink-3">निर्मल घाट</span></p>
-          <p className="caption-mono text-ink-2">{agent?.name}</p>
+        <div className="flex items-center gap-3">
+          <Logo className="h-9" />
+          <div>
+            <p className="text-base font-semibold leading-5">NirmalGhat <span className="font-normal text-ink-3">निर्मल घाट</span></p>
+            <p className="caption-mono text-ink-2">{agent?.name}</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <LangToggle />

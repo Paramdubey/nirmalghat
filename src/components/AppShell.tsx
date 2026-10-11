@@ -1,6 +1,7 @@
-import { Activity, ClipboardList, Database, Droplet, LayoutDashboard, ListOrdered, Users } from 'lucide-react'
+import { Activity, ClipboardList, Database, LayoutDashboard, ListOrdered, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { t, type StringKey } from '../constants/i18n'
+import { Logo } from './Logo'
 import { LangToggle } from '../features/login/LoginPage'
 import { daysUntil, DURGA_VISARJAN_2026 } from '../lib/format'
 import { useData } from '../store/data'
@@ -34,7 +35,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="no-print sticky top-0 z-10 bg-white">
         <div className="flex items-center justify-between gap-3 border-b border-divider px-4 py-3 sm:px-8">
           <div className="flex items-center gap-3">
-            <Droplet className="size-6 text-info" aria-hidden />
+            <Logo className="h-9" />
             <p className="text-base font-semibold leading-5">
               NirmalGhat <span className="font-normal text-ink-3">निर्मल घाट</span>
             </p>
