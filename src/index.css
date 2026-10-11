@@ -1,0 +1,21 @@
+@import "tailwindcss";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/noto-sans-devanagari/400.css";
+@import "@fontsource/noto-sans-devanagari/700.css";
+
+@theme {
+  --font-sans: "Inter", "Noto Sans Devanagari", system-ui, sans-serif;
+  --color-surface: #f6f6f6;
+  --color-divider: #e2e2e2;
+  --color-ink: #000000;
+  --color-ink-2: #545454;
+  --color-ink-3: #6b6b6b;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
