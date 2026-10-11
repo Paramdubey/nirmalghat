@@ -194,14 +194,34 @@ export const strings = {
   rNotSampled: { en: 'Not sampled', hi: 'नमूना नहीं लिया' },
   rBdl: { en: 'BDL', hi: 'बीडीएल' },
   rNd: { en: 'ND', hi: 'एनडी' },
+  actTitle: { en: 'Action recommendations', hi: 'कार्य सुझाव' },
+  actLead: { en: 'Proposed next steps, each tied to readings in the data.', hi: 'प्रस्तावित अगले कदम, प्रत्येक डेटा के मापों से जुड़ा।' },
+  actDisclaimer: { en: 'These are proposals generated from the data. None is assigned, approved or completed, and none is claimed to improve water quality.', hi: 'ये डेटा से बने प्रस्ताव हैं। कोई भी सौंपा, स्वीकृत या पूर्ण नहीं है, और किसी के भी जल गुणवत्ता सुधारने का दावा नहीं है।' },
+  actStamp: { en: 'Proposed — not assigned', hi: 'प्रस्तावित — सौंपा नहीं गया' },
+  actReason: { en: 'Why', hi: 'कारण' },
+  actSupporting: { en: 'Supporting readings', hi: 'समर्थक माप' },
+  actTeam: { en: 'Suggested team (not assigned)', hi: 'सुझाई गई टीम (सौंपी नहीं गई)' },
+  actVerify: { en: 'Evidence required to verify completion', hi: 'पूर्णता सत्यापित करने के लिए आवश्यक साक्ष्य' },
+  actInclude: { en: 'Include in brief', hi: 'सारांश में शामिल करें' },
+  actIncluded: { en: '{a} of {b} actions included in the brief', hi: '{b} में से {a} कार्य सारांश में शामिल' },
+  actPrioHigh: { en: 'High priority', hi: 'उच्च प्राथमिकता' },
+  actPrioModerate: { en: 'Moderate priority', hi: 'मध्यम प्राथमिकता' },
+  actPrioData: { en: 'Data follow-up', hi: 'डेटा अनुवर्तन' },
+  actFilter: { en: 'Action type', hi: 'कार्य का प्रकार' },
+  actNoData: { en: 'No actions to propose from the loaded data.', hi: 'लोड किए गए डेटा से कोई कार्य प्रस्तावित नहीं।' },
+  actPage: { en: 'PDF page', hi: 'पीडीएफ पृष्ठ' },
   dataLimits: { en: 'Data limits', hi: 'डेटा सीमाएँ' },
 } as const satisfies Record<string, { en: string; hi: string }>
 
 export type StringKey = keyof typeof strings
 
 /** Looks up a string; `{name}` placeholders are filled from `vars` (numbers and names are never translated). */
+export function fill(template: string, vars: Record<string, string | number> = {}): string {
+  return template.replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name] ?? ''))
+}
+
 export function t(key: StringKey, lang: Lang, vars: Record<string, string | number> = {}): string {
-  return strings[key][lang].replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name] ?? ''))
+  return fill(strings[key][lang], vars)
 }
 
 export const LABEL_KEY = {

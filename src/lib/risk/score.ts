@@ -112,7 +112,7 @@ export function scoreSite(site: string, results: ReadingResult[], ctx: RankingCo
   const gaps: GapFlag[] = []
   const siteEvents = new Set(allOwn.map((r) => eventKey(r.reading)))
   for (const e of ctx.events.filter((e) => !siteEvents.has(eventKey(e)))) {
-    gaps.push({ code: 'no-table', text: `no ${e.year} ${e.festival} table in the report` })
+    gaps.push({ code: 'no-table', text: `no ${e.year} ${e.festival} table in the report`, detail: eventKey(e) })
   }
   if (first?.siteMatchConfidence === 'medium') {
     gaps.push({ code: 'medium-match', text: 'site name matched with medium confidence (may cover two places)' })
@@ -121,7 +121,7 @@ export function scoreSite(site: string, results: ReadingResult[], ctx: RankingCo
   const missingPhases = [...siteEvents].flatMap((key) =>
     PHASES.filter((p) => !allCore.some((r) => eventKey(r.reading) === key && r.reading.phase === p && r.reading.status === 'valid')).map((p) => `${key} ${p}`))
   if (missingPhases.length > 0) {
-    gaps.push({ code: 'missing-phases', text: `no valid DO/BOD/pH reading for ${missingPhases.length} sampling stage(s)` })
+    gaps.push({ code: 'missing-phases', text: `no valid DO/BOD/pH reading for ${missingPhases.length} sampling stage(s)`, detail: String(missingPhases.length) })
   }
   if (validCore < MIN_VALID_CORE_READINGS) {
     gaps.push({ code: 'few-readings', text: `only ${validCore} valid DO/BOD/pH readings` })

@@ -71,6 +71,8 @@ export interface ObservationRef {
 export interface GapFlag {
   code: 'no-table' | 'medium-match' | 'missing-phases' | 'few-readings'
   text: string
+  /** Machine-readable detail: the missing festival ("2025 Durga") or the count of unsampled stages. */
+  detail?: string
 }
 
 export interface SiteRisk {
