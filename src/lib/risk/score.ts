@@ -152,3 +152,77 @@ export function scoreSite(site: string, results: ReadingResult[], ctx: RankingCo
   }
   return { ...risk, explanation: explain(risk) }
 }
+
+export interface ScoreRow {
+  parameter: 'Dissolved oxygen' | 'BOD' | 'pH'
+  value: number
+  unit: string
+  year: number
+  festival: string
+  phase: string
+  sourcePage: string
+  weight: number
+  severity: number
+  recency: number
+  points: number
+}
+
+export interface ScoreExplanation {
+  site: string
+  rows: ScoreRow[]
+  byParameter: { parameter: ScoreRow['parameter']; count: number; points: number }[]
+  /** Festival-years with a DO or BOD breach, each worth RECURRENCE_PER_EVENT. */
+  events: string[]
+  recurrencePoints: number
+  total: number
+  label: RiskLabel
+  newestYear: number
+  /** Readings that could not count, by kind. */
+  notCounted: { missing: number; bdl: number; nd: number; noLimit: number }
+}
+
+/**
+ * Every step of a ghat's score, row by row, so it can be shown and checked.
+ * The total matches SiteRisk.score (same rules, same unrounded sum).
+ */
+export function explainScore(site: string, results: ReadingResult[], ctx: RankingContext): ScoreExplanation {
+  const own = results.filter((r) => r.reading.site === site)
+  const rows: ScoreRow[] = []
+  const events = new Set<string>()
+  for (const r of own) {
+    const d = r.reading
+    if (d.status !== 'valid' || !isBreach(r.result) || !(d.parameter in PARAMETER_WEIGHT)) continue
+    const parameter = d.parameter as ScoreRow['parameter']
+    const weight = PARAMETER_WEIGHT[parameter]
+    const sev = severity(parameter, d.value)
+    const rec = recency(d.year, ctx.newestYear)
+    rows.push({
+      parameter, value: d.value, unit: d.unit, year: d.year, festival: d.festival, phase: d.phase, sourcePage: d.sourcePage,
+      weight, severity: sev, recency: rec, points: weight * sev * rec,
+    })
+    if (parameter !== 'pH') events.add(eventKey(d))
+  }
+  rows.sort((a, b) => b.points - a.points)
+  const parameters = ['Dissolved oxygen', 'BOD', 'pH'] as const
+  const recurrencePoints = RECURRENCE_PER_EVENT * events.size
+  const total = rows.reduce((n, r) => n + r.points, 0) + recurrencePoints
+  const risk = scoreSite(site, results, ctx, results)
+  const countStatus = (status: string) => own.filter((r) => r.reading.status === status).length
+  return {
+    site,
+    rows,
+    byParameter: parameters.map((parameter) => {
+      const mine = rows.filter((r) => r.parameter === parameter)
+      return { parameter, count: mine.length, points: mine.reduce((n, r) => n + r.points, 0) }
+    }),
+    events: [...events].sort(),
+    recurrencePoints,
+    total,
+    label: risk.label,
+    newestYear: ctx.newestYear,
+    notCounted: {
+      missing: countStatus('missing'), bdl: countStatus('BDL'), nd: countStatus('ND'),
+      noLimit: own.filter((r) => r.result === 'no threshold').length,
+    },
+  }
+}

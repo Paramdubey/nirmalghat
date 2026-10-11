@@ -5,6 +5,7 @@ import { evaluateAll } from '../src/lib/risk/evaluate'
 import { buildRanking, EMPTY_FILTERS, sortRisks } from '../src/lib/risk/rank'
 import { summarise } from '../src/lib/risk/summary'
 import { overviewStats } from '../src/lib/risk/overview'
+import { contextFrom, explainScore } from '../src/lib/risk/score'
 import { groupByWaterBody, heatLevel, heatScale } from '../src/lib/map/groups'
 import { qualityStats } from '../src/lib/risk/quality'
 import { buildCoverage, listEvents } from '../src/lib/risk/events'
@@ -228,5 +229,30 @@ describe('map heat', () => {
     expect(heatLevel(insufficient, scale)).toBeNull()
     expect(heatScale([insufficient])).toBeNull()
     expect(heatScale([insufficient, ranking[0]])).toEqual({ min: ranking[0].score, max: ranking[0].score })
+  })
+})
+
+describe('score explanation', () => {
+  const ctx = contextFrom(results)
+  test('the explained total equals every ghat\'s score', () => {
+    for (const r of ranking) {
+      const x = explainScore(r.site, results, ctx)
+      expect(Math.round(x.total * 10) / 10).toBe(r.score)
+      expect(x.rows.length).toBe(r.breachCount)
+      expect(x.label).toBe(r.label)
+    }
+  })
+  test('parts add up and each row is weight × severity × recency', () => {
+    const x = explainScore('Shahpura lake ghat', results, ctx)
+    expect(x.byParameter.reduce((n, p) => n + p.points, 0) + x.recurrencePoints).toBeCloseTo(x.total, 6)
+    for (const row of x.rows) expect(row.points).toBeCloseTo(row.weight * row.severity * row.recency, 9)
+    expect(x.recurrencePoints).toBe(x.events.length * 2)
+    expect(x.rows.every((row) => /^\d+$/.test(row.sourcePage))).toBe(true)
+  })
+  test('missing, BDL and ND readings are listed as not counted, never as points', () => {
+    const x = explainScore('Bairagarh (Sant Hirdaram) kund', results, ctx)
+    expect(x.notCounted.missing).toBeGreaterThan(0)
+    expect(x.notCounted.bdl).toBeGreaterThan(0)
+    expect(x.rows.every((row) => Number.isFinite(row.value))).toBe(true)
   })
 })

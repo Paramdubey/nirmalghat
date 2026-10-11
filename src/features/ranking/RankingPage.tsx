@@ -53,7 +53,7 @@ export function RankingPage() {
 
       <ol className="space-y-3">
         {ranking.map((r, i) => (
-          <RankRow key={r.site} highlighted={focusSite === r.site} risk={r} rank={i + 1} onView={() => viewEvidence(r.site)} actions={actions.filter((a) => a.site === r.site)} />
+          <RankRow key={r.site} highlighted={focusSite === r.site} risk={r} rank={i + 1} onView={() => viewEvidence(r.site)} onScore={() => { selectSite(r.site); setView('score') }} actions={actions.filter((a) => a.site === r.site)} />
         ))}
       </ol>
 
@@ -101,7 +101,7 @@ export function RankingPage() {
   )
 }
 
-function RankRow({ risk: r, rank, onView, actions, highlighted }: { risk: SiteRisk; rank: number; onView: () => void; actions: ProposedAction[]; highlighted: boolean }) {
+function RankRow({ risk: r, rank, onView, onScore, actions, highlighted }: { risk: SiteRisk; rank: number; onView: () => void; onScore: () => void; actions: ProposedAction[]; highlighted: boolean }) {
   const lang = useUi((s) => s.lang)
   const latest = r.latestObservation
   return (
@@ -147,9 +147,14 @@ function RankRow({ risk: r, rank, onView, actions, highlighted }: { risk: SiteRi
         </ul>
       )}
       <FieldBriefPanel risk={r} actions={actions} />
-      <button onClick={onView} className="mt-4 min-h-11 rounded-full bg-surface px-6 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black">
-        {t('viewEvidence', lang)}
-      </button>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button onClick={onView} className="min-h-11 rounded-full bg-surface px-6 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black">
+          {t('viewEvidence', lang)}
+        </button>
+        <button onClick={onScore} className="min-h-11 rounded-full bg-surface px-6 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black">
+          {t('scLink', lang)}
+        </button>
+      </div>
     </li>
   )
 }

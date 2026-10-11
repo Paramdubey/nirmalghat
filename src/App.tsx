@@ -6,6 +6,7 @@ import { AgentApp } from './features/agent/AgentApp'
 import { AgentsPage } from './features/agents/AgentsPage'
 import { DataQualityPage } from './features/data-quality/DataQualityPage'
 import { MapPage } from './features/map/MapPage'
+import { ScorePage } from './features/score/ScorePage'
 import { LoginPage } from './features/login/LoginPage'
 import { OverviewPage } from './features/overview/OverviewPage'
 import { RankingPage } from './features/ranking/RankingPage'
@@ -46,6 +47,7 @@ function Content() {
   if (view === 'actions') return <ActionsPage />
   if (view === 'agents') return <AgentsPage />
   if (view === 'map') return <MapPage />
+  if (view === 'score') return <ScorePage />
   return <DataQualityPage />
 }
 
