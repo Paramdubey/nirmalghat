@@ -174,6 +174,7 @@ CPCB **Class B (outdoor bathing)** is the reference (read from `cpcb_water_quali
 Per-reading derived record: original + printed value, unit, criterion, result (`below criterion | within | above criterion | outside range | no threshold | not sampled | BDL | ND`), site, year, festival, phase, source page, uncertainty notes.
 
 Score (deterministic, documented in code and README with every weight and its rationale):
+- **Scored per reading:** raw breach points are averaged over the ghat's valid readings and scaled to a full-coverage ghat, so ghats with different numbers of readings compare fairly; show the number of readings behind every score.
 - **Observed-evidence component:** valid DO and BOD breaches weighted heaviest, pH out of range lighter; severity (DO = 0 mg/l highest tier; scaled by distance from the limit using valid numeric values only); recurrence across years/festivals/phases; mild recency weighting labelled as recency of observation, not current condition.
 - **Data-confidence component (separate; never subtracts risk):** missing phases, no Durga 2025 table, medium match, few valid readings. These can only raise an "Insufficient data / needs review" flag or attention level.
 - Labels: **High priority, Moderate priority, Lower observed concern, Insufficient data.** These are internal classifications, not official categories. Insufficient data is never "safe" or "low."

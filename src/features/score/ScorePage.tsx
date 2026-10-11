@@ -38,7 +38,7 @@ export function ScorePage() {
       <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-divider p-5">
         <div>
           <h2 className="text-2xl font-bold leading-8">{site.site}</h2>
-          <p className="text-sm text-ink-3">{site.waterBody}</p>
+          <p className="text-sm text-ink-3">{site.waterBody} · {t('scBasedOn', lang, { n: site.readingsUsed })}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
@@ -86,16 +86,22 @@ export function ScorePage() {
         ))}
       </section>
 
+      <section className="rounded-lg border border-divider p-5">
+        <h2 className="text-xl font-bold leading-7">{t('scStepScale', lang)}</h2>
+        <p className="mt-1 text-sm text-ink-2">{t('scScaleNote', lang, { ref: x.referenceReadings })}</p>
+        <p className="tabular mt-2 text-lg font-bold">{t('scScaleLine', lang, { raw: f1(x.rawReadingPoints), n: x.validReadings, ref: x.referenceReadings, score: f1(x.readingScore) })}</p>
+      </section>
+
       <section>
         <h2 className="text-xl font-bold leading-7">{t('scStep2', lang)}</h2>
         <p className="mt-1 text-sm text-ink-2">{t('scStep2Note', lang, { each: RECURRENCE_PER_EVENT })}</p>
         <ul className="mt-2 flex flex-wrap gap-2">{x.events.map((e) => <li key={e} className="rounded-full bg-surface px-3 py-1 text-sm">{e}</li>)}</ul>
-        <p className="tabular mt-2 text-sm font-bold">{t('scStep2Sum', lang, { n: x.events.length, each: RECURRENCE_PER_EVENT, points: f1(x.recurrencePoints) })}</p>
+        <p className="tabular mt-2 text-sm font-bold">{t('scStep2Sum', lang, { raw: x.recurrenceRaw, with: x.eventsWithData, all: x.eventsAll, points: f1(x.recurrencePoints) })}</p>
       </section>
 
       <section className="rounded-lg border border-divider p-5">
         <h2 className="text-xl font-bold leading-7">{t('scStep3', lang)}</h2>
-        <p className="tabular mt-2 text-lg font-bold">{t('scSum', lang, { a: f1(x.total - x.recurrencePoints), b: f1(x.recurrencePoints), total: f1(x.total) })}</p>
+        <p className="tabular mt-2 text-lg font-bold">{t('scSum', lang, { a: f1(x.readingScore), b: f1(x.recurrencePoints), total: f1(x.total) })}</p>
         <div className="relative mt-4 h-3 rounded-full bg-surface" aria-hidden>
           <div className="h-3 rounded-full bg-black" style={{ width: `${Math.min(100, (x.total / (HIGH_PRIORITY_MIN * 1.4)) * 100)}%` }} />
           <span className="absolute -top-1 h-5 w-0.5 bg-ink-3" style={{ left: `${(MODERATE_PRIORITY_MIN / (HIGH_PRIORITY_MIN * 1.4)) * 100}%` }} />

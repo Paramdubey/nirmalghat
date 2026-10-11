@@ -100,14 +100,15 @@ The original MPPCB report PDFs are in [resources/](resources). The app shows the
 
 Reference: **CPCB Class B (outdoor bathing)** — pH 6.5–8.5 (inclusive), DO ≥ 5 mg/l (5 is within), BOD ≤ 3 mg/l (3 is within). Total coliform (≤ 500 MPN/100 ml) is not evaluated because the immersion data holds no coliform results. COD, solids, turbidity, conductivity and metals have no Class B limit: they are shown as values, labelled "No Class B limit set", and never scored.
 
-**Score = observed evidence only.** Each valid DO, BOD or pH breach adds *parameter weight × severity × recency*; recurrence adds a bonus. The weights live in [src/constants/weights.ts](src/constants/weights.ts):
+**Score = observed evidence only, per reading.** Each valid DO, BOD or pH breach adds *parameter weight × severity × recency*. The points are then **averaged over the ghat's valid readings and scaled to a ghat with full coverage**, so a ghat with fewer readings (for example a missing Durga 2025 table) is not ranked lower just for having fewer chances to collect points. A recurrence bonus is added. The weights live in [src/constants/weights.ts](src/constants/weights.ts):
 
 | Part | Value | Why |
 |---|---|---|
 | Parameter weight | DO 3 · BOD 3 · pH 1 | Oxygen and organic load are the clearest immersion signals; pH out of range matters less |
 | Severity | 1 to 3; DO of exactly 0 mg/l = 3 | Further past the limit scores more, from real numbers only; zero oxygen is the top tier |
 | Recency | −0.1 per year older | Newer observations count slightly more. This is recency of *observation*, not current condition |
-| Recurrence | +2 per festival-year with a DO or BOD breach | Repeated breaches are less likely to be one-offs |
+| Per-reading scaling | raw points ÷ valid readings × readings of a full-coverage ghat (54 here) | Compare ghats with different numbers of readings fairly. A ghat with full coverage is unchanged |
+| Recurrence | +2 per festival-year with a DO or BOD breach, ÷ festival-years with data × festival-years in the dataset | Repeated breaches are less likely to be one-offs, and a ghat is not penalised for a missing festival |
 | Labels | High ≥ 120 · Moderate ≥ 50 · else Lower observed concern | Judgement calls set against the 2023–2025 spread of scores (about 60 to 150) |
 
 **Labels are internal groupings, not official categories.** "Lower observed concern" is never green and never means safe.
@@ -145,6 +146,7 @@ Reference: **CPCB Class B (outdoor bathing)** — pH 6.5–8.5 (inclusive), DO �
 - **Field readings are not charted.** They appear as a labelled table on the evidence page and in the officer's reports, not as chart series, and they never change the ranking. Entered values are range-checked but not otherwise verified.
 - **Avoid personal data.** Use names or squad labels, not contact details.
 - **Hindi text has not had a native-speaker review.** Every Hindi string is marked `TODO: native review`. Ghat explanations in the ranking cards stay in English; Hindi appears in the UI strings and the generated briefs.
+- **Per-reading scaling has trade-offs.** Averaging means a ghat with few readings is judged on what it has: each reading counts for more, so a few extreme values can move its score more, and removing compliant readings (for example unsampled stages) can *raise* the average. Missing data never lowers a score, but it can raise one. Every card shows how many valid readings the score is based on, and ghats with fewer than 9 valid readings are "Insufficient data".
 - **Label thresholds (120 / 50) are judgement calls** and should be reviewed by someone who knows the domain.
 - **Suggested teams** in the action text (for example "MPPCB regional office") are generic suggestions, not verified roles.
 - **Print/PDF**: the print layout was checked with emulated print media, not through a real browser print dialog or a saved PDF. Tested in Chrome only; not tested on Safari or Firefox, or on a real phone.

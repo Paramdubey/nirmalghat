@@ -115,7 +115,7 @@ function RankRow({ risk: r, rank, onView, onScore, actions, highlighted }: { ris
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="tabular text-sm text-ink-2">{t('scoreLabel', lang, { n: r.score })}</span>
+          <span className="tabular text-sm text-ink-2">{t('scoreLabel', lang, { n: r.score })} · {t('scBasedOn', lang, { n: r.readingsUsed })}</span>
           <RiskBadge label={r.label} />
         </div>
       </div>

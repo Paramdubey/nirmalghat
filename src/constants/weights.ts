@@ -27,7 +27,8 @@ export const WEIGHT_RATIONALE: { name: string; value: string; why: string }[] = 
   { name: 'Parameter weight', value: 'DO 3 · BOD 3 · pH 1', why: 'Oxygen and organic load are the clearest immersion signals; pH out of range matters less.' },
   { name: 'Severity', value: '1 to 3 (DO = 0 mg/l → 3)', why: 'Further past the limit scores more, using real numbers only. Zero oxygen is the top tier.' },
   { name: 'Recency', value: '−0.1 per year older', why: 'Newer observations count slightly more. This is recency of observation, not current condition.' },
-  { name: 'Recurrence', value: '+2 per festival-year with a DO/BOD breach', why: 'Breaches that repeat across years and festivals are less likely to be one-offs.' },
+  { name: 'Per-reading scaling', value: 'average per valid reading, scaled to full coverage', why: 'A ghat with fewer valid readings (for example a missing report table) is not ranked lower for having fewer chances to collect points. A ghat with full coverage is unchanged.' },
+  { name: 'Recurrence', value: '+2 per festival-year with a DO/BOD breach, per festival-year with data', why: 'Breaches that repeat across years and festivals are less likely to be one-offs.' },
   { name: 'Labels', value: `High ≥ ${HIGH_PRIORITY_MIN} · Moderate ≥ ${MODERATE_PRIORITY_MIN}`, why: 'Internal groupings, not official categories.' },
   { name: 'Data gaps', value: 'flag only', why: 'Gaps can mark a site "Insufficient data"; they never reduce its score or make it look safe.' },
 ]

@@ -57,12 +57,12 @@ describe('ranking on real data', () => {
 })
 
 describe('scoring rules', () => {
-  test('missing data never lowers a score', () => {
+  test('missing data never lowers a score (readings are averaged over those that exist)', () => {
     const complete = fullSite('A', 2, 6)
     const withGaps = complete.map((r) => (r.parameter === 'pH' ? reading({ parameter: 'pH', site: 'A', festival: r.festival, phase: r.phase }, null) : r))
     const a = buildRanking(evaluateAll(complete))[0]
     const b = buildRanking(evaluateAll(withGaps))[0]
-    expect(b.score).toBe(a.score)
+    expect(b.score).toBeGreaterThanOrEqual(a.score)
   })
   test('a site with only missing readings is Insufficient data, never low', () => {
     const [risk] = buildRanking(evaluateAll(fullSite('Z', null, null)))
@@ -95,6 +95,38 @@ describe('scoring rules', () => {
   test('Insufficient data is listed after ranked ghats under priority sort', () => {
     const all = [...fullSite('Strong', 0, 9), ...fullSite('Empty', null, null)]
     expect(buildRanking(evaluateAll(all)).map((r) => r.site)).toEqual(['Strong', 'Empty'])
+  })
+})
+
+describe('scoring is per reading, so ghats with fewer readings compare fairly', () => {
+  /** Same breach pattern; B simply has one festival fewer (like a missing report table). */
+  const pattern = (site: string, festivals: ('Ganesh' | 'Durga')[]) =>
+    festivals.flatMap((festival) => (['pre', 'during', 'after'] as const).flatMap((phase) => [
+      reading({ parameter: 'Dissolved oxygen', site, festival, phase }, 2),
+      reading({ parameter: 'BOD', site, festival, phase }, 6),
+      reading({ parameter: 'pH', site, festival, phase }, 7),
+    ]))
+  test('fewer festivals with the same pattern give the same score', () => {
+    const both = buildRanking(evaluateAll([...pattern('A', ['Ganesh', 'Durga']), ...pattern('B', ['Ganesh', 'Durga'])]))
+    const mixed = buildRanking(evaluateAll([...pattern('A', ['Ganesh', 'Durga']), ...pattern('B', ['Ganesh'])]))
+    const score = (list: ReturnType<typeof buildRanking>, site: string) => list.find((r) => r.site === site)!.score
+    expect(score(mixed, 'B')).toBe(score(mixed, 'A'))
+    expect(score(mixed, 'A')).toBe(score(both, 'A'))
+  })
+  test('a ghat with full coverage has the same score as the raw sum of its points', () => {
+    const full = ranking.find((r) => r.site === 'Shahpura lake ghat')!
+    const x = explainScore(full.site, results, contextFrom(results))
+    expect(x.factor).toBe(1)
+    expect(full.score).toBe(152.3)
+  })
+  test('ghats with fewer valid readings are scaled up, never down', () => {
+    const bairagarh = explainScore('Bairagarh (Sant Hirdaram) kund', results, contextFrom(results))
+    expect(bairagarh.validReadings).toBeLessThan(bairagarh.referenceReadings)
+    expect(bairagarh.factor).toBeGreaterThan(1)
+    expect(bairagarh.readingScore).toBeCloseTo(bairagarh.rawReadingPoints * bairagarh.factor, 9)
+  })
+  test('readingsUsed is shown with every score', () => {
+    for (const r of ranking) expect(r.readingsUsed).toBeGreaterThan(0)
   })
 })
 
@@ -244,9 +276,9 @@ describe('score explanation', () => {
   })
   test('parts add up and each row is weight × severity × recency', () => {
     const x = explainScore('Shahpura lake ghat', results, ctx)
-    expect(x.byParameter.reduce((n, p) => n + p.points, 0) + x.recurrencePoints).toBeCloseTo(x.total, 6)
+    expect(x.byParameter.reduce((n, p) => n + p.points, 0) * x.factor + x.recurrencePoints).toBeCloseTo(x.total, 6)
     for (const row of x.rows) expect(row.points).toBeCloseTo(row.weight * row.severity * row.recency, 9)
-    expect(x.recurrencePoints).toBe(x.events.length * 2)
+    expect(x.recurrenceRaw).toBe(x.events.length * 2)
     expect(x.rows.every((row) => /^\d+$/.test(row.sourcePage))).toBe(true)
   })
   test('missing, BDL and ND readings are listed as not counted, never as points', () => {

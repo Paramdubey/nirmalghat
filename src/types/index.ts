@@ -84,6 +84,8 @@ export interface SiteRisk {
   score: number
   /** Where the score comes from, so the ranking can be explained. */
   breakdown: { doPoints: number; bodPoints: number; phPoints: number; recurrencePoints: number }
+  /** Valid DO/BOD/pH readings the score is based on. */
+  readingsUsed: number
   breachCount: number
   doBreachCount: number
   bodBreachCount: number

@@ -66,6 +66,23 @@ export function explain(risk: Pick<SiteRisk, 'label' | 'doBreachCount' | 'validD
 const isCore = (r: ReadingResult) => (CHECKED_PARAMETERS as readonly string[]).includes(r.reading.parameter)
 
 /**
+ * Readings are scored per reading, not summed, so a ghat with fewer valid readings (for example a
+ * missing 2025 Durga table) is not ranked lower just for having fewer chances to collect points.
+ * Raw points are averaged over the ghat's valid readings and scaled to the reading count of a ghat
+ * with full coverage. For a ghat with full coverage the factor is 1 and nothing changes.
+ */
+export function scaleFactor(validReadings: number, referenceReadings: number): number {
+  return validReadings === 0 ? 0 : referenceReadings / validReadings
+}
+
+/** Recurrence bonus per festival-year with data, scaled to the number of festival-years in the whole dataset. */
+export function recurrenceScaled(breachEvents: number, eventsWithData: number, eventsAll: number): number {
+  return eventsWithData === 0 ? 0 : ((RECURRENCE_PER_EVENT * breachEvents) / eventsWithData) * eventsAll
+}
+
+export const referenceReadings = (ctx: RankingContext) => ctx.events.length * PHASES.length * CHECKED_PARAMETERS.length
+
+/**
  * `results` is what the user is looking at (possibly filtered): it drives score and breach counts.
  * `all` is the site's full data: it drives data-gap flags and completeness, which describe the
  * site's records, not the current view.
@@ -105,8 +122,11 @@ export function scoreSite(site: string, results: ReadingResult[], ctx: RankingCo
     points[key] += PARAMETER_WEIGHT[key] * severity(reading.parameter, reading.value) * recency(reading.year, ctx.newestYear)
     if (reading.parameter !== 'pH') breachEvents.add(eventKey(reading))
   }
-  const recurrencePoints = RECURRENCE_PER_EVENT * breachEvents.size
-  const score = points['Dissolved oxygen'] + points.BOD + points.pH + recurrencePoints
+  const scoredValid = core.filter((r) => r.reading.status === 'valid').length
+  const factor = scaleFactor(scoredValid, referenceReadings(ctx))
+  const eventsWithData = new Set(own.map((r) => eventKey(r.reading))).size
+  const recurrencePoints = recurrenceScaled(breachEvents.size, eventsWithData, ctx.events.length)
+  const score = (points['Dissolved oxygen'] + points.BOD + points.pH) * factor + recurrencePoints
 
   // Data confidence: kept separate from the score. Gaps can only flag, never lower risk.
   const gaps: GapFlag[] = []
@@ -139,7 +159,8 @@ export function scoreSite(site: string, results: ReadingResult[], ctx: RankingCo
     matchConfidence: first?.siteMatchConfidence ?? 'high',
     label,
     score: round1(score),
-    breakdown: { doPoints: round1(points['Dissolved oxygen']), bodPoints: round1(points.BOD), phPoints: round1(points.pH), recurrencePoints },
+    breakdown: { doPoints: round1(points['Dissolved oxygen'] * factor), bodPoints: round1(points.BOD * factor), phPoints: round1(points.pH * factor), recurrencePoints: round1(recurrencePoints) },
+    readingsUsed: scoredValid,
     breachCount: counts['Dissolved oxygen'] + counts.BOD + counts.pH,
     doBreachCount: counts['Dissolved oxygen'],
     bodBreachCount: counts.BOD,
@@ -171,8 +192,20 @@ export interface ScoreExplanation {
   site: string
   rows: ScoreRow[]
   byParameter: { parameter: ScoreRow['parameter']; count: number; points: number }[]
-  /** Festival-years with a DO or BOD breach, each worth RECURRENCE_PER_EVENT. */
+  /** Festival-years with a DO or BOD breach, each worth RECURRENCE_PER_EVENT before scaling. */
   events: string[]
+  /** Sum of the row points, before scaling. */
+  rawReadingPoints: number
+  /** Valid DO/BOD/pH readings behind the score, and the reading count of a full-coverage ghat. */
+  validReadings: number
+  referenceReadings: number
+  /** referenceReadings / validReadings. */
+  factor: number
+  readingScore: number
+  recurrenceRaw: number
+  eventsWithData: number
+  eventsAll: number
+  /** Recurrence after scaling to the number of festival-years in the whole dataset. */
   recurrencePoints: number
   total: number
   label: RiskLabel
@@ -204,8 +237,14 @@ export function explainScore(site: string, results: ReadingResult[], ctx: Rankin
   }
   rows.sort((a, b) => b.points - a.points)
   const parameters = ['Dissolved oxygen', 'BOD', 'pH'] as const
-  const recurrencePoints = RECURRENCE_PER_EVENT * events.size
-  const total = rows.reduce((n, r) => n + r.points, 0) + recurrencePoints
+  const rawReadingPoints = rows.reduce((n, r) => n + r.points, 0)
+  const validReadings = own.filter((r) => isCore(r) && r.reading.status === 'valid').length
+  const reference = referenceReadings(ctx)
+  const factor = scaleFactor(validReadings, reference)
+  const eventsWithData = new Set(own.map((r) => eventKey(r.reading))).size
+  const recurrencePoints = recurrenceScaled(events.size, eventsWithData, ctx.events.length)
+  const readingScore = rawReadingPoints * factor
+  const total = readingScore + recurrencePoints
   const risk = scoreSite(site, results, ctx, results)
   const countStatus = (status: string) => own.filter((r) => r.reading.status === status).length
   return {
@@ -216,6 +255,8 @@ export function explainScore(site: string, results: ReadingResult[], ctx: Rankin
       return { parameter, count: mine.length, points: mine.reduce((n, r) => n + r.points, 0) }
     }),
     events: [...events].sort(),
+    rawReadingPoints, validReadings, referenceReadings: reference, factor, readingScore,
+    recurrenceRaw: RECURRENCE_PER_EVENT * events.size, eventsWithData, eventsAll: ctx.events.length,
     recurrencePoints,
     total,
     label: risk.label,
