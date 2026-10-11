@@ -1,5 +1,6 @@
 import { TriangleAlert } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { FieldReportView } from '../../components/FieldReportView'
 import { RiskBadge } from '../../components/RiskBadge'
 import { actionText } from '../../constants/actionText'
 import { t } from '../../constants/i18n'
@@ -237,11 +238,20 @@ function FieldBriefPanel({ risk, actions }: { risk: SiteRisk; actions: ProposedA
       {previous.length > 0 && (
         <div className="mt-3 border-t border-divider pt-3">
           <p className="label-caps !text-[11px]">{t('fbAssignedFor', lang)}</p>
-          <ul className="mt-1 space-y-1 text-sm">
+          <ul className="mt-1 space-y-3 text-sm">
             {previous.map((a) => (
-              <li key={a.id} className="flex flex-wrap items-center gap-2">
-                <b>{a.agentName}</b>
-                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${a.submission ? 'bg-info-tint text-info' : 'hatch'}`}>{a.submission ? t('asgSubmitted', lang) : t('asgAssigned', lang)}</span>
+              <li key={a.id}>
+                <div className="flex flex-wrap items-center gap-2">
+                  <b>{a.agentName}</b>
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${a.submission ? 'bg-info-tint text-info' : 'hatch'}`}>{a.submission ? t('asgSubmitted', lang) : t('asgAssigned', lang)}</span>
+                </div>
+                {a.submission && (
+                  <div className="mt-2 rounded-lg border border-divider bg-white p-3">
+                    <p className="flex items-start gap-2 text-xs text-ink-2"><TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />{t('fieldUnverified', lang)}</p>
+                    <p className="tabular mt-1 text-xs text-ink-3">{t('asgSubmittedAt', lang, { when: new Date(a.submission.submittedAt).toLocaleString('en-IN') })}</p>
+                    <FieldReportView report={a.submission.report} />
+                  </div>
+                )}
               </li>
             ))}
           </ul>
