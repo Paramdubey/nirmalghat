@@ -4,6 +4,7 @@ import { parseBhopalCsv } from '../src/lib/data/parse'
 import { evaluateAll } from '../src/lib/risk/evaluate'
 import { buildRanking, EMPTY_FILTERS, sortRisks } from '../src/lib/risk/rank'
 import { summarise } from '../src/lib/risk/summary'
+import { overviewStats } from '../src/lib/risk/overview'
 import { buildCoverage, listEvents } from '../src/lib/risk/events'
 import type { Reading } from '../src/types'
 import { reading } from './helpers'
@@ -146,5 +147,22 @@ describe('coverage matrix', () => {
     const missing = cells.filter((c) => c.status === 'no table')
     expect(missing).toHaveLength(3)
     expect(missing.every((c) => c.event.year === 2025 && c.event.festival === 'Durga')).toBe(true)
+  })
+})
+
+describe('overview stats', () => {
+  const s = summarise(ranking, results)
+  const o = overviewStats(ranking, results, s)
+  test('are computed from the data', () => {
+    expect(o.readingCount).toBe(1524)
+    expect(o.years).toEqual({ from: 2023, to: 2025 })
+    expect(o.validCoreTests).toBe(116 + 112 + 115)
+    expect(o.breachPercent).toBeCloseTo((148 / 343) * 100, 0)
+    expect(o.gapSites.sort()).toEqual(ranking.filter((r) => r.gaps.length > 0).map((r) => r.site).sort())
+    expect(o.unsampledReadings).toBe(61)
+  })
+  test('every ghat is listed under exactly one label', () => {
+    const all = Object.values(o.sitesByLabel).flat()
+    expect(all.sort()).toEqual(ranking.map((r) => r.site).sort())
   })
 })

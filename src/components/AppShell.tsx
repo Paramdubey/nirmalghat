@@ -1,4 +1,4 @@
-import { Activity, ClipboardList, Database, FileText, LayoutDashboard, ListOrdered } from 'lucide-react'
+import { Activity, ClipboardList, Database, Droplet, FileText, LayoutDashboard, ListOrdered } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { t, type StringKey } from '../constants/i18n'
 import { ExportMenu } from './ExportMenu'
@@ -24,40 +24,48 @@ function countdown(lang: 'en' | 'hi'): string {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { lang, view, setView, leave } = useUi()
-  const { isSample, status } = useData()
+  const { isSample, status, results } = useData()
+  const years = results.map((r) => r.reading.year)
+  const period = years.length > 0 ? { from: Math.min(...years), to: Math.max(...years) } : { from: 2023, to: 2025 }
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <header className="no-print sticky top-0 z-10 border-b border-divider bg-white">
-        <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-8">
+      <header className="no-print sticky top-0 z-10 bg-white">
+        <div className="flex items-center justify-between gap-3 border-b border-divider px-4 py-3 sm:px-8">
           <div className="flex items-center gap-3">
-            <div className="grid size-10 place-items-center rounded-lg bg-black text-lg font-bold text-white">N</div>
-            <div>
-              <p className="text-base font-semibold leading-5">
-                NirmalGhat <span className="font-normal text-ink-3">| निर्मल घाट</span>
-              </p>
-              <p className="caption-mono text-ink-2">{t('orgLine', lang)}</p>
-            </div>
+            <Droplet className="size-6 text-info" aria-hidden />
+            <p className="text-base font-semibold leading-5">
+              NirmalGhat <span className="font-normal text-ink-3">निर्मल घाट</span>
+            </p>
+          </div>
+          <div className="hidden items-center gap-2 lg:flex">
+            <span className="caption-mono rounded-full border border-divider px-3 py-1.5 text-ink-2">{t('histBadge', lang)}</span>
+            <span className="caption-mono flex items-center gap-2 rounded-full bg-black px-3 py-1.5 font-semibold text-white">
+              <span className="size-2 rounded-full bg-white" aria-hidden />{countdown(lang)}
+            </span>
+            {isSample && status === 'ready' && <span className="caption-mono rounded-full bg-moderate px-3 py-1.5 font-semibold">{t('sampleData', lang)}</span>}
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="hidden rounded-full bg-surface px-3 py-1.5 text-sm font-medium xl:inline">{countdown(lang)}</span>
-            <ExportMenu />
             <LangToggle />
+            <ExportMenu />
             <button onClick={leave} className="hidden min-h-11 rounded-full bg-surface px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-black sm:block">
               {t('signOut', lang)}
             </button>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-divider bg-surface px-4 py-2 text-sm sm:px-8">
-          <span className="font-semibold">{t('dataBadge', lang)}</span>
-          {isSample && status === 'ready' && <span className="rounded-full bg-black px-2 py-0.5 text-xs font-semibold text-white">{t('sampleData', lang)}</span>}
-          <span className="text-ink-2">{t('disclaimer', lang)}</span>
-          <span className="w-full text-ink-2 xl:hidden">{countdown(lang)}</span>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 bg-black px-4 py-2 text-xs text-white sm:px-8">
+          <span className="caption-mono rounded bg-high px-2 py-0.5 font-bold uppercase">{t('noticeTag', lang)}</span>
+          <span>{t('noticeBody', lang, period)}</span>
+          <span className="w-full text-[#c4c4c4] lg:hidden">{t('histBadge', lang)} · {countdown(lang)}</span>
         </div>
       </header>
 
       <div className="flex flex-1">
         <nav aria-label="Main" className="no-print sticky top-28 hidden w-64 shrink-0 self-start border-r border-divider p-4 lg:block">
+          <div className="mb-4 rounded-lg border border-divider bg-surface p-3">
+            <p className="caption-mono uppercase text-ink-3">{t('planCycle', lang)}</p>
+            <p className="mt-1 text-sm font-bold">{t('planCycleValue', lang)}</p>
+          </div>
           <ul className="space-y-1">
             {NAV.map(({ view: v, label, icon: Icon }) => (
               <li key={v}>
@@ -72,6 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </li>
             ))}
           </ul>
+          <p className="caption-mono mt-8 text-ink-3">{t('sidebarFoot', lang)}</p>
         </nav>
         <main className="min-w-0 flex-1 px-4 py-8 pb-28 sm:px-8 lg:pb-8">{children}</main>
       </div>
