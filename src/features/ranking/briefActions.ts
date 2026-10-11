@@ -9,7 +9,3 @@ export async function copyBrief(briefs: Brief[]): Promise<boolean> {
     return false
   }
 }
-
-export function printBrief() {
-  window.print()
-}

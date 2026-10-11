@@ -21,7 +21,7 @@ function write(key: string, value: string | null) {
   }
 }
 
-export type View = 'overview' | 'ranking' | 'evidence' | 'actions' | 'brief' | 'quality'
+export type View = 'overview' | 'ranking' | 'evidence' | 'actions' | 'quality'
 
 export type BriefLang = 'en' | 'hi' | 'both'
 

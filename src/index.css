@@ -73,6 +73,10 @@ body {
   .no-print { display: none !important; }
   body { background: #fff; color: #000; }
   main { padding: 0 !important; }
+  /* While a field brief is open, print only the brief. */
+  body:has(.brief-modal) #root { display: none !important; }
+  .brief-modal { position: static !important; background: #fff !important; padding: 0 !important; overflow: visible !important; }
+  .brief-modal > div { max-width: none !important; padding: 0 !important; }
   .brief-sheet { border: 0 !important; padding: 0 !important; box-shadow: none !important; break-inside: auto; }
   .brief-sheet + .brief-sheet { break-before: page; }
   .brief-print { margin: 0 !important; }

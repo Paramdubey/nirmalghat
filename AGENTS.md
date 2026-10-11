@@ -10,10 +10,10 @@ You write clean, simple, maintainable code. The team is mixed technical and non-
 
 NirmalGhat — "Bhopal Water-Quality Risk Intelligence for Visarjan Ghats."
 
-MPPCB tests water at Bhopal's idol-immersion ghats three times per festival (before, during, one week after) for Ganesh and Durga. Results sit in 90–120 page PDFs nobody compares against legal limits. NirmalGhat gives a **Bhopal Municipal Corporation (BMC) officer**, before **Durga visarjan on 20 October 2026**, a ranked list of ghats by risk, the plain-language reason for each rank, readings traceable to report and page, and a short Hindi + English brief they can forward.
+MPPCB tests water at Bhopal's idol-immersion ghats three times per festival (before, during, one week after) for Ganesh and Durga. Results sit in 90–120 page PDFs nobody compares against legal limits. NirmalGhat gives a **Bhopal Municipal Corporation (BMC) officer**, before **Durga visarjan on 20 October 2026**, a ranked list of ghats by risk, the plain-language reason for each rank, readings traceable to report and page, and a short per-ghat Hindi + English field brief they can hand to a field agent.
 
 **One user. One workflow. One outcome:**
-Historical data → risk ranking → evidence review → proposed actions → bilingual brief.
+Historical data → risk ranking → evidence review → proposed actions → bilingual per-ghat field brief.
 
 It is **decision support**, not live monitoring, and not an official regulatory determination. No connection to any government system. No paid services. No API keys.
 
@@ -186,15 +186,15 @@ Filters: site, festival, year, phase, parameter, risk label, "missing/uncertain 
 
 ## Screens
 
-Sidebar (desktop) / bottom tab bar or sheet menu (mobile): Overview, Ghat risk ranking, Water-quality evidence, Action recommendations, Officer brief, Data quality.
+Sidebar (desktop) / bottom tab bar or sheet menu (mobile): Overview, Ghat risk ranking, Water-quality evidence, Action recommendations, Data quality. (There is no separate Officer brief tab: the brief is per ghat, for the field agent, created from the ranking cards.)
 
 Persistent header: product name + subtitle, badge "Historical data 2023–2025 · Not live monitoring", chip "Preparing for Durga visarjan · 20 Oct 2026" (days remaining computed from today's date), EN/हिन्दी toggle, Export/Share menu (Copy brief, Print/Save as PDF). Disclaimer strip that historical readings don't establish current conditions.
 
 - **Overview:** four computed summary cards (ghats analysed, sites with high-priority historical signals, observed parameter-limit breaches, sites with missing/incomplete data), headline findings, top-3 priority list, risk-label distribution with "Insufficient data" as its own segment, short caveats card.
-- **Ranking:** filter bar, sort, table/list with rank, risk label, site, water body, latest observation, DO, BOD, breaches, completeness, short explanation, "View evidence"; warning icons for medium match / missing Durga 2025 / unsampled phases; collapsible "How the ranking works" with score breakdown.
+- **Ranking:** no filters or sort controls. A fixed list for the next immersion event (Durga visarjan, 20 Oct 2026) with rank, risk label, site, water body, latest observation, DO, BOD, breaches, completeness, short explanation, "View evidence"; warning icons for medium match / missing Durga 2025 / unsampled phases; collapsible "How the ranking works" with score breakdown. Each card has a **Field brief** panel: tick that ghat's recommended actions, optionally pick a field agent from the officer-entered roster linked to that ghat, then preview/copy/print a bilingual brief addressed to that agent. A "Manage field agents" panel holds the roster (name or squad label + ghats covered), typed by the officer and stored only in localStorage.
 - **Site detail:** overview (standard + printed names, water body, match confidence, latest measurement, completeness, limitations); DO/BOD/pH charts over ordered Year·Festival·Phase with Class B reference lines (pH as a band); **no connecting lines across gaps**; hollow marker "Not sampled"; distinct BDL/ND markers; tooltips with value, unit, year, festival, phase, source page; evidence table (parameter, value+unit, printed value, criterion, result, year, festival, phase, source page, source report, copy-citation).
 - **Actions:** evidence-linked proposed actions, each stamped "Proposed — not assigned," with reason, supporting readings, priority, suggested team (only if appropriate), and evidence required to verify completion. "Include in brief" toggle stored locally.
-- **Officer brief:** one printable page; English / हिन्दी / Bilingual; generated from structured data via deterministic templates (works with no AI); includes title + date, purpose + data period, top sites and why, key DO/BOD/pH vs Class B, missing-data and site-identity caveats, proposed actions, and the "historical readings do not establish current conditions" note. Natural, concise Hindi for a municipal officer; preserve numbers, units, site names, caveats. Copy-to-clipboard + print stylesheet.
+- **Field brief (per ghat, opened from a ranking card):** one printable page; English / हिन्दी / Bilingual; addressed to the chosen field agent (or "not specified"); stamped as a draft, nothing is sent or recorded as an assignment; generated from structured data via deterministic templates (works with no AI); includes title + date, purpose + data period, top sites and why, key DO/BOD/pH vs Class B, missing-data and site-identity caveats, proposed actions, and the "historical readings do not establish current conditions" note. Natural, concise Hindi for a municipal officer; preserve numbers, units, site names, caveats. Copy-to-clipboard + print stylesheet.
 - **Data quality:** coverage matrix (site × year·festival·phase: sampled / BDL / ND / not sampled / no table in report), missing readings by site, missing parameters by phase, incomplete coverage, site-name uncertainty, parameters with no Class B limit, code legend, loader validation warnings, list of source reports.
 
 States: loading skeletons, empty-filter state with "Clear filters," data-load error naming the file. All controls must work — no decorative buttons or fake links.
@@ -318,7 +318,7 @@ Be concise. Explain changes and how to test them in plain terms. Be upfront abou
 - No backend, database, auth, or paid APIs
 - No map or invented coordinates
 - No LLM-generated rankings, scores, or numbers
-- No multi-user roles, task assignment, or approval workflows (mock teaser only if time remains, clearly labelled)
+- No multi-user roles, real task assignment, notifications, or approval workflows. The field-agent roster and brief addressee are local drafts only, never shown as assigned or completed
 - No statewide data mixed into Bhopal rankings
 - No health-effect claims; no "safe" labels; no completed-action claims
 

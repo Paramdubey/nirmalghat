@@ -1,7 +1,6 @@
-import { Activity, ClipboardList, Database, Droplet, FileText, LayoutDashboard, ListOrdered } from 'lucide-react'
+import { Activity, ClipboardList, Database, Droplet, LayoutDashboard, ListOrdered } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { t, type StringKey } from '../constants/i18n'
-import { ExportMenu } from './ExportMenu'
 import { LangToggle } from '../features/login/LoginPage'
 import { daysUntil, DURGA_VISARJAN_2026 } from '../lib/format'
 import { useData } from '../store/data'
@@ -12,7 +11,6 @@ const NAV: { view: View; label: StringKey; short: StringKey; icon: typeof Activi
   { view: 'ranking', label: 'navRanking', short: 'navShortRanking', icon: ListOrdered },
   { view: 'evidence', label: 'navEvidence', short: 'navShortEvidence', icon: Activity },
   { view: 'actions', label: 'navActions', short: 'navShortActions', icon: ClipboardList },
-  { view: 'brief', label: 'navBrief', short: 'navShortBrief', icon: FileText },
   { view: 'quality', label: 'navQuality', short: 'navShortQuality', icon: Database },
 ]
 
@@ -47,7 +45,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <LangToggle />
-            <ExportMenu />
             <button onClick={leave} className="hidden min-h-11 rounded-full bg-surface px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-black sm:block">
               {t('signOut', lang)}
             </button>
@@ -85,7 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="min-w-0 flex-1 px-4 py-8 pb-28 sm:px-8 lg:pb-8">{children}</main>
       </div>
 
-      <nav aria-label="Main" className="no-print fixed inset-x-0 bottom-0 z-10 grid grid-cols-6 border-t border-divider bg-white lg:hidden">
+      <nav aria-label="Main" className="no-print fixed inset-x-0 bottom-0 z-10 grid grid-cols-5 border-t border-divider bg-white lg:hidden">
         {NAV.map(({ view: v, short, icon: Icon }) => (
           <button
             key={v}

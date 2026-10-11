@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, Droplets, FileText, ListOrdered, TrendingDown, TriangleAlert } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Droplets, ListOrdered, TrendingDown, TriangleAlert } from 'lucide-react'
 import { useMemo } from 'react'
 import { StatCard } from '../../components/StatCard'
 import { actionText } from '../../constants/actionText'
@@ -53,9 +53,6 @@ export function OverviewPage() {
           <p className="mt-4 text-base leading-6 text-ink-2">{t('ovIntro', lang, { g: s.ghatsAnalysed })}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => setView('brief')} className="flex min-h-11 items-center gap-2 rounded-full border border-divider bg-white px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-black">
-            <FileText className="size-4" aria-hidden />{t('ovBtnBrief', lang)}
-          </button>
           <button onClick={() => setView('ranking')} className="flex min-h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black">
             <ListOrdered className="size-4" aria-hidden />{t('ovBtnRanking', lang)}
           </button>

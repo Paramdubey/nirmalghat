@@ -1,39 +1,31 @@
 import { TriangleAlert } from 'lucide-react'
-import { useMemo } from 'react'
-import { FilterChips } from '../../components/FilterChips'
+import { useMemo, useState } from 'react'
 import { RiskBadge } from '../../components/RiskBadge'
-import { LABEL_KEY, t, type StringKey } from '../../constants/i18n'
+import { actionText } from '../../constants/actionText'
+import { t } from '../../constants/i18n'
 import { WEIGHT_RATIONALE } from '../../constants/weights'
+import { generateActions, type ProposedAction } from '../../lib/actions/generate'
+import { daysUntil, DURGA_VISARJAN_2026 } from '../../lib/format'
 import { buildRanking } from '../../lib/risk/rank'
+import { useActions } from '../../store/actions'
+import { agentsForGhat, useAgents } from '../../store/agents'
 import { useData } from '../../store/data'
-import { hasActiveFilters, useRanking } from '../../store/ranking'
+import { useRanking } from '../../store/ranking'
 import { useUi } from '../../store/ui'
-import type { Phase, RiskLabel, SiteRisk, SortKey } from '../../types'
-
-const LABELS: RiskLabel[] = ['High priority', 'Moderate priority', 'Lower observed concern', 'Insufficient data']
-const PHASE_KEY: Record<Phase, StringKey> = { pre: 'phasePre', during: 'phaseDuring', after: 'phaseAfter' }
-const SORTS: { value: SortKey; label: StringKey }[] = [
-  { value: 'priority', label: 'sortPriority' }, { value: 'latest', label: 'sortLatest' }, { value: 'breaches', label: 'sortBreaches' },
-]
-// Only these have a Class B limit, so only they can be filtered on.
-const CHECKED = ['Dissolved oxygen', 'BOD', 'pH']
+import type { SiteRisk } from '../../types'
+import { FieldAgentsPanel } from './FieldAgentsPanel'
+import { FieldBriefModal } from './FieldBriefModal'
 
 export function RankingPage() {
   const lang = useUi((s) => s.lang)
   const setView = useUi((s) => s.setView)
   const results = useData((s) => s.results)
-  const { filters, sort, toggle, setUncertainOnly, setSort, clearFilters, selectSite } = useRanking()
+  const selectSite = useRanking((s) => s.selectSite)
 
-  const everything = useMemo(() => buildRanking(results), [results])
-  const ranking = useMemo(() => buildRanking(results, filters, sort), [results, filters, sort])
-  const options = useMemo(() => ({
-    sites: [...new Set(results.map((r) => r.reading.site))].sort(),
-    years: [...new Set(results.map((r) => r.reading.year))].sort(),
-    festivals: [...new Set(results.map((r) => r.reading.festival))].sort(),
-  }), [results])
-  const active = hasActiveFilters(filters)
-  const shown = new Set(ranking.map((r) => r.site))
-  const hidden = everything.filter((r) => !shown.has(r.site)).map((r) => r.site)
+  const ranking = useMemo(() => buildRanking(results), [results])
+  const actions = useMemo(() => generateActions(ranking, results), [ranking, results])
+  const years = results.map((r) => r.reading.year)
+  const [days] = useState(() => daysUntil(DURGA_VISARJAN_2026, new Date()))
 
   function viewEvidence(site: string) {
     selectSite(site)
@@ -44,60 +36,18 @@ export function RankingPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
         <h1 className="text-[32px] font-bold leading-10">{t('rankTitle', lang)}</h1>
-        <p className="mt-1 text-base text-ink-2">{t('rankLead', lang)}</p>
+        <p className="mt-1 text-base text-ink-2">
+          {t(days > 0 ? 'rkLead2' : 'rkLead2Passed', lang, { n: days, from: Math.min(...years), to: Math.max(...years) })}
+        </p>
       </div>
 
-      <section aria-label={t('filters', lang)} className="space-y-5 rounded-lg border border-divider p-5">
-        <FilterChips label={t('fSite', lang)} options={options.sites.map((v) => ({ value: v, label: v }))} selected={filters.sites} onToggle={(v) => toggle('sites', v)} />
-        <div className="grid gap-5 sm:grid-cols-2">
-          <FilterChips label={t('fFestival', lang)} options={options.festivals.map((v) => ({ value: v, label: v }))} selected={filters.festivals} onToggle={(v) => toggle('festivals', v)} />
-          <FilterChips label={t('fYear', lang)} options={options.years.map((v) => ({ value: v, label: String(v) }))} selected={filters.years} onToggle={(v) => toggle('years', v)} />
-          <FilterChips label={t('fPhase', lang)} options={(['pre', 'during', 'after'] as Phase[]).map((v) => ({ value: v, label: t(PHASE_KEY[v], lang) }))} selected={filters.phases} onToggle={(v) => toggle('phases', v)} />
-          <div>
-            <FilterChips label={t('fParameter', lang)} options={CHECKED.map((v) => ({ value: v, label: v }))} selected={filters.parameters} onToggle={(v) => toggle('parameters', v)} />
-            <p className="mt-2 text-xs text-ink-3">{t('fParameterNote', lang)}</p>
-          </div>
-        </div>
-        <FilterChips label={t('fLabel', lang)} options={LABELS.map((v) => ({ value: v, label: t(LABEL_KEY[v], lang) }))} selected={filters.labels} onToggle={(v) => toggle('labels', v)} />
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <label className="flex min-h-11 items-center gap-3 text-sm font-medium">
-            <input type="checkbox" checked={filters.uncertainOnly} onChange={(e) => setUncertainOnly(e.target.checked)} className="size-5 accent-black" />
-            {t('fUncertain', lang)}
-          </label>
-          {active && (
-            <button onClick={clearFilters} className="min-h-11 rounded-full bg-surface px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-black">
-              {t('clearFilters', lang)}
-            </button>
-          )}
-        </div>
-      </section>
+      <FieldAgentsPanel ghats={ranking.map((r) => r.site)} />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="tabular text-sm font-medium" aria-live="polite">{t('showing', lang, { a: ranking.length, b: everything.length })}</p>
-        <div role="radiogroup" aria-label={t('sortBy', lang)} className="flex flex-wrap gap-1 rounded-xl bg-surface p-1">
-          {SORTS.map((o) => (
-            <button
-              key={o.value} role="radio" aria-checked={sort === o.value} onClick={() => setSort(o.value)}
-              className={`min-h-11 rounded-lg px-4 text-sm font-medium focus-visible:outline-2 focus-visible:outline-black ${sort === o.value ? 'bg-black text-white' : ''}`}
-            >
-              {t(o.label, lang)}
-            </button>
-          ))}
-        </div>
-      </div>
-      {active && <p className="text-sm text-ink-2">{t('filterNote', lang)}</p>}
-      {hidden.length > 0 && <p className="rounded-lg bg-surface p-3 text-sm">{t('hiddenNote', lang, { names: hidden.join(', ') })}</p>}
-
-      {ranking.length === 0 ? (
-        <div className="rounded-lg border border-divider p-8 text-center">
-          <p className="text-lg font-semibold">{t('emptyTitle', lang)}</p>
-          <button onClick={clearFilters} className="mt-4 min-h-11 rounded-full bg-black px-6 text-sm font-semibold text-white">{t('clearFilters', lang)}</button>
-        </div>
-      ) : (
-        <ol className="space-y-3">
-          {ranking.map((r, i) => <RankRow key={r.site} risk={r} rank={i + 1} onView={() => viewEvidence(r.site)} />)}
-        </ol>
-      )}
+      <ol className="space-y-3">
+        {ranking.map((r, i) => (
+          <RankRow key={r.site} risk={r} rank={i + 1} onView={() => viewEvidence(r.site)} actions={actions.filter((a) => a.site === r.site)} />
+        ))}
+      </ol>
 
       <details className="rounded-lg border border-divider p-5">
         <summary className="cursor-pointer text-lg font-bold">{t('howTitle', lang)}</summary>
@@ -124,7 +74,7 @@ export function RankingPage() {
               {(['bkDo', 'bkBod', 'bkPh', 'bkRecurrence', 'bkTotal'] as const).map((k) => <th key={k} className="py-2 pr-4 text-right">{t(k, lang)}</th>)}
             </tr></thead>
             <tbody>
-              {everything.map((r) => (
+              {ranking.map((r) => (
                 <tr key={r.site} className="border-b border-divider">
                   <th scope="row" className="py-2 pr-4 font-medium">{r.site}</th>
                   <td className="py-2 pr-4 text-right">{r.breakdown.doPoints}</td>
@@ -143,7 +93,7 @@ export function RankingPage() {
   )
 }
 
-function RankRow({ risk: r, rank, onView }: { risk: SiteRisk; rank: number; onView: () => void }) {
+function RankRow({ risk: r, rank, onView, actions }: { risk: SiteRisk; rank: number; onView: () => void; actions: ProposedAction[] }) {
   const lang = useUi((s) => s.lang)
   const latest = r.latestObservation
   return (
@@ -188,7 +138,8 @@ function RankRow({ risk: r, rank, onView }: { risk: SiteRisk; rank: number; onVi
           ))}
         </ul>
       )}
-      <button onClick={onView} className="mt-4 min-h-11 rounded-full bg-black px-6 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black">
+      <FieldBriefPanel risk={r} actions={actions} />
+      <button onClick={onView} className="mt-4 min-h-11 rounded-full bg-surface px-6 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black">
         {t('viewEvidence', lang)}
       </button>
     </li>
@@ -200,6 +151,55 @@ function Stat({ term, children }: { term: string; children: React.ReactNode }) {
     <div>
       <dt className="label-caps !text-[11px]">{term}</dt>
       <dd className="mt-1">{children}</dd>
+    </div>
+  )
+}
+
+/** Per-ghat field brief: tick recommended actions, optionally pick a linked field agent, then preview/copy/print. */
+function FieldBriefPanel({ risk, actions }: { risk: SiteRisk; actions: ProposedAction[] }) {
+  const lang = useUi((s) => s.lang)
+  const { included, toggle } = useActions()
+  const agents = agentsForGhat(useAgents((s) => s.agents), risk.site)
+  const [agentId, setAgentId] = useState('')
+  const [open, setOpen] = useState(false)
+  const selected = actions.filter((a) => included.includes(a.id))
+  const agent = agents.find((a) => a.id === agentId)?.name ?? null
+
+  return (
+    <div className="mt-4 rounded-lg bg-surface p-4">
+      <h3 className="text-base font-bold">{t('fbTitle', lang)}</h3>
+      {actions.length === 0 ? <p className="mt-2 text-sm text-ink-2">{t('fbNoActions', lang)}</p> : (
+        <fieldset className="mt-2">
+          <legend className="label-caps !text-[11px]">{t('fbPick', lang)}</legend>
+          <ul className="mt-1">
+            {actions.map((a) => (
+              <li key={a.id}>
+                <label className="flex min-h-11 cursor-pointer items-start gap-3 py-2 text-sm">
+                  <input type="checkbox" checked={included.includes(a.id)} onChange={() => toggle(a.id)} className="mt-0.5 size-5 shrink-0 accent-black" />
+                  {actionText(a.kind, 'title', lang, a.vars)}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+      )}
+      <div className="mt-2 flex flex-wrap items-end gap-3">
+        <label className="block text-sm font-medium">
+          {t('fbAgent', lang)}
+          <select value={agentId} onChange={(e) => setAgentId(e.target.value)} disabled={agents.length === 0}
+            className="mt-1 block min-h-11 w-64 max-w-full rounded-lg border border-divider bg-white px-3 text-sm disabled:text-ink-3">
+            <option value="">{t('fbAgentNone', lang)}</option>
+            {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </select>
+        </label>
+        <button onClick={() => setOpen(true)} disabled={selected.length === 0}
+          className="min-h-11 rounded-full bg-black px-6 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:bg-divider disabled:text-ink-3">
+          {t('fbCreate', lang)}
+        </button>
+        <span className="tabular pb-3 text-sm text-ink-2">{t('fbSelected', lang, { a: selected.length, b: actions.length })}</span>
+      </div>
+      {agents.length === 0 && <p className="mt-2 text-xs text-ink-3">{t('fbNoAgents', lang)}</p>}
+      {open && <FieldBriefModal risk={risk} actions={selected} agent={agent} onClose={() => setOpen(false)} />}
     </div>
   )
 }
